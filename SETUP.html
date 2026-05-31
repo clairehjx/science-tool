@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Cheat Sheet Pipeline — Setup Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #F4F7FB; color: #2D3748; line-height: 1.6; }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  h1 { font-size: 26px; font-weight: 800; color: #1A202C; margin-bottom: 6px; }
+  .subtitle { color: #718096; font-size: 15px; margin-bottom: 36px; }
+
+  /* OS toggle */
+  .os-toggle { display: flex; gap: 10px; margin-bottom: 32px; }
+  .os-btn {
+    padding: 9px 22px; border-radius: 20px; border: 2px solid #E5E9F0;
+    background: white; font-size: 14px; font-weight: 600; cursor: pointer;
+    color: #718096; transition: all 0.15s;
+  }
+  .os-btn.active { background: #4D96FF; color: white; border-color: #4D96FF; }
+
+  /* Step cards */
+  .step { background: white; border-radius: 14px; border: 1px solid #E5E9F0; margin-bottom: 16px; overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-bottom: 1px solid #F0F2F7; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: #4D96FF; color: white; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 16px; }
+  .step-body { padding: 18px 20px; }
+  .step-body p { color: #4A5568; font-size: 14px; margin-bottom: 12px; }
+  .step-body p:last-child { margin-bottom: 0; }
+
+  /* Code blocks */
+  .code-block { position: relative; background: #1A202C; border-radius: 10px; padding: 16px 48px 16px 16px; margin: 10px 0; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; color: #E2E8F0; overflow-x: auto; }
+  .code-block .comment { color: #718096; }
+  .code-block .cmd { color: #68D391; }
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: #2D3748; border: 1px solid #4A5568; color: #A0AEC0;
+    border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: #4A5568; color: white; }
+
+  /* OS-specific sections */
+  .os-section { display: none; }
+  .os-section.show { display: block; }
+  .os-shared { display: block; }
+
+  /* Callouts */
+  .note { background: #EBF8FF; border-left: 4px solid #4D96FF; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #2B6CB0; }
+  .warn { background: #FFFBEB; border-left: 4px solid #F6AD55; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #744210; }
+  .success { background: #F0FFF4; border-left: 4px solid #4ECDC4; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #22543D; }
+
+  /* Inline code */
+  code { background: #EDF2F7; border-radius: 4px; padding: 1px 6px; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; color: #B83280; }
+
+  /* File tree */
+  .file-tree { background: #1A202C; border-radius: 10px; padding: 16px; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; color: #A0AEC0; line-height: 1.8; margin: 10px 0; }
+  .file-tree .dir { color: #68D391; }
+  .file-tree .file { color: #E2E8F0; }
+  .file-tree .cmt { color: #4A5568; }
+
+  /* Section divider */
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #A0AEC0; margin: 32px 0 12px; }
+
+  /* Command reference table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #EEF4FF; color: #4D96FF; font-weight: 700; }
+  td { padding: 10px 12px; border-top: 1px solid #F0F2F7; vertical-align: top; }
+  td:first-child { font-family: "SF Mono", "Fira Code", monospace; color: #2D3748; white-space: nowrap; }
+  tr:nth-child(even) td { background: #FAFBFF; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Science Cheat Sheet Pipeline</h1>
+  <p class="subtitle">Step-by-step setup guide — Singapore P4/P5 Science exam study tool</p>
+
+  <div class="os-toggle">
+    <button class="os-btn active" onclick="setOS('mac')">🍎 macOS</button>
+    <button class="os-btn" onclick="setOS('linux')">🐧 Linux</button>
+  </div>
+
+  <!-- ─── STEP 1: Python ─────────────────────────────────── -->
+  <div class="section-label">Prerequisites</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Install Python 3.11 or later</div>
+    </div>
+    <div class="step-body">
+
+      <div class="os-section" id="mac-1">
+        <p>Install <a href="https://brew.sh" target="_blank">Homebrew</a> if you don't have it, then install Python:</p>
+        <div class="code-block">
+          <button class="copy-btn" data-cmd="/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"" onclick="copyCode(this)">Copy</button>
+          <span class="comment"># Install Homebrew (skip if already installed)</span><br>
+          <span class="cmd">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span><br><br>
+          <span class="comment"># Install Python</span><br>
+          <span class="cmd">brew install python@3.12</span>
+        </div>
+        <div class="note">Verify with <code>python3 --version</code> — should show 3.11 or higher.</div>
+      </div>
+
+      <div class="os-section" id="linux-1" style="display:none">
+        <p>On Ubuntu / Debian:</p>
+        <div class="code-block">
+          <button class="copy-btn" data-cmd="sudo apt update && sudo apt install python3 python3-pip python3-venv -y" onclick="copyCode(this)">Copy</button>
+          <span class="cmd">sudo apt update && sudo apt install python3 python3-pip python3-venv -y</span>
+        </div>
+        <p>On Fedora / RHEL:</p>
+        <div class="code-block">
+          <button class="copy-btn" data-cmd="sudo dnf install python3 python3-pip -y" onclick="copyCode(this)">Copy</button>
+          <span class="cmd">sudo dnf install python3 python3-pip -y</span>
+        </div>
+        <div class="note">Verify with <code>python3 --version</code> — should show 3.11 or higher.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── STEP 2: Get the project ───────────────────────── -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Get the project files</div>
+    </div>
+    <div class="step-body">
+      <p>Copy the project folder to your machine. The folder should look like this:</p>
+      <div class="file-tree">
+        <span class="dir">science_cheatsheet/</span><br>
+        &nbsp;&nbsp;<span class="file">CLAUDE.md</span><br>
+        &nbsp;&nbsp;<span class="file">requirements.txt</span><br>
+        &nbsp;&nbsp;<span class="dir">banks/p4/papers/</span> &nbsp;&nbsp;<span class="cmt"># drop P4 PDFs here</span><br>
+        &nbsp;&nbsp;<span class="dir">banks/p5/papers/</span> &nbsp;&nbsp;<span class="cmt"># drop P5 PDFs here</span><br>
+        &nbsp;&nbsp;<span class="dir">conceptviz/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># ConceptViz PNGs (canonical + v1/v2/v3 variants)</span><br>
+        &nbsp;&nbsp;<span class="dir">output/html/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmt"># final cheat sheet HTML</span><br>
+        &nbsp;&nbsp;<span class="dir">output/validated/</span> &nbsp;&nbsp;<span class="cmt"># cached validated questions JSON</span><br>
+        &nbsp;&nbsp;<span class="dir">output/conceptviz_prompts/</span> &nbsp;&nbsp;<span class="cmt"># ConceptViz structured content (.txt)</span><br>
+        &nbsp;&nbsp;<span class="dir">prompts/</span><br>
+        &nbsp;&nbsp;<span class="dir">scripts/</span><br>
+        &nbsp;&nbsp;<span class="dir">templates/</span>
+      </div>
+      <p>Open a terminal and navigate into the project folder:</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="cd ~/science_cheatsheet" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">cd ~/science_cheatsheet</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── STEP 3: Virtual environment ──────────────────── -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Create a virtual environment</div>
+    </div>
+    <div class="step-body">
+      <p>Run once to create an isolated Python environment inside the project folder:</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="python3 -m venv venv" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">python3 -m venv venv</span>
+      </div>
+      <p>Activate it (you need to do this every time you open a new terminal):</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="source venv/bin/activate" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">source venv/bin/activate</span>
+      </div>
+      <div class="note">Your prompt will show <code>(venv)</code> when the environment is active.</div>
+    </div>
+  </div>
+
+  <!-- ─── STEP 4: Install dependencies ─────────────────── -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Install dependencies</div>
+    </div>
+    <div class="step-body">
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="pip install -r requirements.txt" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">pip install -r requirements.txt</span>
+      </div>
+      <div class="note">The first run also downloads the sentence-transformer model (~80 MB) automatically when you first run the pipeline. This only happens once.</div>
+    </div>
+  </div>
+
+  <!-- ─── STEP 5: API key ───────────────────────────────── -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Add your Gemini API key</div>
+    </div>
+    <div class="step-body">
+      <p>Set your Gemini API key as an <strong>environment variable</strong>. On Mac/Linux, add this line to your shell profile (such as <code>~/.zshrc</code> or <code>~/.bashrc</code>), then restart your terminal:</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="export GEMINI_API_KEY=your_key_here" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">export GEMINI_API_KEY=your_key_here</span>
+      </div>
+      <p>Replace <code>your_key_here</code> with your actual key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>.</p>
+      <div class="warn">The key lives in your computer's environment, never inside the project folder &mdash; so it can never be committed to git by accident.</div>
+    </div>
+  </div>
+
+  <!-- ─── RUNNING THE PIPELINE ─────────────────────────── -->
+  <div class="section-label">Running the pipeline</div>
+
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">6</div>
+      <div class="step-title">Add exam PDFs</div>
+    </div>
+    <div class="step-body">
+      <p>Copy your exam paper PDFs into the correct bank folder. File names must follow this format:</p>
+      <div class="code-block">
+        <span class="comment"># Format: School_Year_Level.pdf</span><br>
+        <span class="file">banks/p5/papers/ACS_Junior_2025_P5.pdf</span><br>
+        <span class="file">banks/p5/papers/Raffles_Girls_2024_P5.pdf</span><br>
+        <span class="file">banks/p4/papers/Henry_Park_2025_P4.pdf</span>
+      </div>
+      <div class="note">Multi-word school names use underscores. The year and level are extracted automatically from the filename.</div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">7</div>
+      <div class="step-title">Extract questions from PDFs</div>
+    </div>
+    <div class="step-body">
+      <p>Run the extractor for your bank. It skips PDFs already processed — safe to re-run.</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="venv/bin/python3 scripts/pdf_extractor.py --bank p5" onclick="copyCode(this)">Copy</button>
+        <span class="comment"># For P5 papers</span><br>
+        <span class="cmd">venv/bin/python3 scripts/pdf_extractor.py --bank p5</span><br><br>
+        <span class="comment"># For P4 papers</span><br>
+        <span class="cmd">venv/bin/python3 scripts/pdf_extractor.py --bank p4</span>
+      </div>
+      <div class="note">This makes <strong>1 Gemini API call per new PDF</strong>. Already-processed PDFs are skipped automatically (tracked in <code>processed.json</code>).</div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">8</div>
+      <div class="step-title">Generate a cheat sheet</div>
+    </div>
+    <div class="step-body">
+      <p>Run the pipeline for a topic. Use the exact topic name as it appears in the syllabus.</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="venv/bin/python3 scripts/pipeline.py --topic "Cycles in Water" --bank p5" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">venv/bin/python3 scripts/pipeline.py --topic "Cycles in Water" --bank p5</span>
+      </div>
+      <p>Useful flags:</p>
+      <table>
+        <tr><th>Flag</th><th>What it does</th></tr>
+        <tr><td>--threshold 0.20</td><td>Lower the similarity filter if fewer than 5 questions match (default 0.25)</td></tr>
+        <tr><td>--force-validation</td><td>Re-run Gemini validation even if a saved result already exists</td></tr>
+        <tr><td>--force-html</td><td>Regenerate the HTML even if it already exists (otherwise skipped)</td></tr>
+        <tr><td>--wide-theme</td><td>Split by sub-topic, produce one HTML file per sub-topic</td></tr>
+      </table>
+      <div class="note">First run makes <strong>2 Gemini API calls</strong>: validation + HTML generation. Re-runs skip both automatically if their outputs exist (use the <code>--force-*</code> flags to override).</div>
+      <div class="success">
+        Outputs saved to:<br>
+        • <code>output/html/cheatsheet_cycles_in_water_p5.html</code> — the cheat sheet (inline SVGs, tables, charts already rendered)<br>
+        • <code>output/validated/validated_cycles_in_water_p5.json</code> — cached validated questions<br>
+        • <code>output/conceptviz_prompts/cycles_in_water_p5.txt</code> — structured ConceptViz content (consumed by image_generator)
+      </div>
+      <div class="note"><strong>Compact helper DSL.</strong> The HTML LLM emits short helper calls (<code>kCard</code>, <code>mCard</code>, <code>tCard</code>, <code>dCardCompare</code> for cards; <code>dCompare</code>, <code>dDistinct</code>, <code>dScene</code>, <code>dFlow</code> for SVG diagrams; <code>ecBar</code>, <code>ecLine</code>, <code>ecPie</code> for charts) instead of raw HTML/SVG. Helpers live in <code>templates/script.js</code>; each tab body is a small <code>&lt;script&gt;</code> block calling them. Topic-specific Tier-2 sub-shapes (water/heat/matter, biology, electricity) are selectively injected into the prompt by <code>pipeline.py</code> based on keyword match — the LLM only sees the helpers relevant to the topic.</div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">9</div>
+      <div class="step-title">Generate the ConceptViz + any PNG diagrams</div>
+    </div>
+    <div class="step-body">
+      <p>Most diagrams (tables, charts, Rough.js sketches, complex SVGs) are already rendered inline by the HTML generator in step 8. <code>image_generator.py</code> only handles the parts that need image-model calls:</p>
+      <ul style="margin:8px 0 12px 22px;color:#4A5568;font-size:14px;line-height:1.7">
+        <li><strong>ConceptViz</strong> (Master Summary tab) — runs a 3-stage flow: prompt-shaper LLM → N nano-banana variants → embed v1</li>
+        <li><strong>Nano-banana PNG placeholders</strong> — rare; only when the HTML LLM picked TYPE D-PNG for genuinely photorealistic content</li>
+      </ul>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="venv/bin/python3 scripts/image_generator.py --topic "Cycles in Water" --bank p5" onclick="copyCode(this)">Copy</button>
+        <span class="comment"># Interactive — shows a menu to choose which tab to generate</span><br>
+        <span class="cmd">venv/bin/python3 scripts/image_generator.py --topic "Cycles in Water" --bank p5</span><br><br>
+        <span class="comment"># Only the Master Summary (ConceptViz)</span><br>
+        <span class="cmd">venv/bin/python3 scripts/image_generator.py --topic "Cycles in Water" --bank p5 --tab summary</span><br><br>
+        <span class="comment"># Generate more ConceptViz variants (default 3)</span><br>
+        <span class="cmd">venv/bin/python3 scripts/image_generator.py --topic "Cycles in Water" --bank p5 --variants 5</span>
+      </div>
+      <div class="note">Already-replaced placeholders are skipped automatically. ConceptViz also skips if <code>conceptviz/{slug}_{level}.png</code> already exists — embeds the file directly with no API calls.</div>
+    </div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">10</div>
+      <div class="step-title">Open the cheat sheet</div>
+    </div>
+    <div class="step-body">
+      <div class="os-section" id="mac-10">
+        <div class="code-block">
+          <button class="copy-btn" data-cmd="open output/html/cheatsheet_cycles_in_water_p5.html" onclick="copyCode(this)">Copy</button>
+          <span class="cmd">open output/html/cheatsheet_cycles_in_water_p5.html</span>
+        </div>
+      </div>
+      <div class="os-section" id="linux-10" style="display:none">
+        <div class="code-block">
+          <button class="copy-btn" data-cmd="xdg-open output/html/cheatsheet_cycles_in_water_p5.html" onclick="copyCode(this)">Copy</button>
+          <span class="cmd">xdg-open output/html/cheatsheet_cycles_in_water_p5.html</span>
+        </div>
+      </div>
+      <div class="success">The cheat sheet is a single self-contained HTML file — no internet connection needed to view it. Share it by copying the file.</div>
+    </div>
+  </div>
+
+  <!-- ─── ConceptViz ────────────────────────────────────── -->
+  <div class="section-label">ConceptViz (Master Summary diagram)</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">★</div>
+      <div class="step-title">How ConceptViz is generated</div>
+    </div>
+    <div class="step-body">
+      <p>The Master Summary tab shows a full-screen illustrated concept map. It's now generated automatically as part of step 9 in three stages:</p>
+
+      <ol style="margin:8px 0 12px 22px;color:#4A5568;font-size:14px;line-height:1.8">
+        <li><strong>Stage 1 — content extraction</strong> (already done in step 8). The HTML LLM mines the validated questions and writes structured YAML content (sub-topics, keywords, Q&A pairs, causal pairs, classification, key takeaway, scene hint) into the hidden ConceptViz placeholder div. Same content also dumped to <code>output/conceptviz_prompts/{slug}_{level}.txt</code>.</li>
+        <li><strong>Stage 2 — prompt shaping.</strong> <code>image_generator.py</code> calls a small flash LLM to combine that structured content with <code>templates/conceptviz_image_style.txt</code>, returning N variant image prompts.</li>
+        <li><strong>Stage 3 — image rendering.</strong> Each variant prompt is sent to nano-banana-2 (<code>gemini-3.1-flash-image-preview</code>). All variants are saved alongside their prompts; v1 is promoted to the canonical filename and embedded in the HTML.</li>
+      </ol>
+
+      <p>Files produced (default <code>--variants 3</code>):</p>
+      <div class="file-tree">
+        <span class="file">conceptviz/cycles_in_water_p5.png</span> &nbsp;&nbsp;<span class="cmt"># canonical (= v1, embedded into HTML)</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v1.png</span> &nbsp;&nbsp;<span class="cmt"># variant 1</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v1.prompt.txt</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v2.png</span> &nbsp;&nbsp;<span class="cmt"># variant 2</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v2.prompt.txt</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v3.png</span> &nbsp;&nbsp;<span class="cmt"># variant 3</span><br>
+        <span class="file">conceptviz/cycles_in_water_p5_v3.prompt.txt</span>
+      </div>
+
+      <p><strong>Swap to a different variant:</strong> copy any <code>_v{N}.png</code> over the canonical filename, then re-run image_generator.py — it embeds the existing PNG without making any API calls.</p>
+      <div class="code-block">
+        <button class="copy-btn" data-cmd="cp conceptviz/cycles_in_water_p5_v2.png conceptviz/cycles_in_water_p5.png" onclick="copyCode(this)">Copy</button>
+        <span class="cmd">cp conceptviz/cycles_in_water_p5_v2.png conceptviz/cycles_in_water_p5.png</span><br>
+        <span class="cmd">venv/bin/python3 scripts/image_generator.py --topic "Cycles in Water" --bank p5 --tab summary</span>
+      </div>
+
+      <div class="note">If you'd rather generate the PNG with an external tool, just save it to <code>conceptviz/{slug}_{level}.png</code> directly — image_generator detects the existing file and skips Stage 2 + 3 entirely.</div>
+    </div>
+  </div>
+
+  <!-- ─── Iterating Tier 2 helpers ──────────────────────── -->
+  <div class="section-label">Growing the helper catalogue</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num" style="background:#B388FF">↻</div>
+      <div class="step-title">Add new Tier-2 sub-shapes after each run</div>
+    </div>
+    <div class="step-body">
+      <p>Each topic the LLM may fall back to raw <code>&lt;svg&gt;</code> for shapes the catalogue doesn't yet cover (a magnifying glass, a magnet, a syringe…). Use this loop to grow the catalogue from real examples:</p>
+      <ol style="margin:8px 0 12px 22px;color:#4A5568;font-size:14px;line-height:1.7">
+        <li>Run the pipeline and open the HTML.</li>
+        <li>Open <code>prompts/iterate_tier2_helpers.txt</code> and copy the prompt block (between the marked lines).</li>
+        <li>Paste it into a fresh Claude conversation, fill in <code>{SLUG}</code> and <code>{LEVEL}</code>, and attach the new HTML.</li>
+        <li>Claude scans the HTML for raw SVG blocks, sources clean implementations from <a href="https://bioicons.com" target="_blank">bioicons</a> (CC0) or <a href="https://www.svgrepo.com" target="_blank">SVGRepo</a> (CC0/MIT), and returns a drop-in patch for <code>templates/script.js</code> plus a worked example for <code>prompts/generation_prompt.txt</code>.</li>
+        <li>Apply the patch and re-run the pipeline with <code>--force-html</code> on the same topic.</li>
+      </ol>
+      <div class="note">The iteration prompt is version-controlled at <code>prompts/iterate_tier2_helpers.txt</code> — reuse the same text every cycle so future helpers stay consistent with the existing API style (camelCase <code>d…</code> names, <code>dPal</code> palette, pure string returns).</div>
+    </div>
+  </div>
+
+  <!-- ─── Quick reference ───────────────────────────────── -->
+  <div class="section-label">Quick command reference</div>
+
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num" style="background:#4ECDC4">≡</div>
+      <div class="step-title">All commands at a glance</div>
+    </div>
+    <div class="step-body">
+      <table>
+        <tr><th>Command</th><th>Purpose</th></tr>
+        <tr>
+          <td>source venv/bin/activate</td>
+          <td>Activate virtual environment (run once per terminal session)</td>
+        </tr>
+        <tr>
+          <td>venv/bin/python3 scripts/pdf_extractor.py --bank p5</td>
+          <td>Extract questions from new PDFs in banks/p5/papers/</td>
+        </tr>
+        <tr>
+          <td>venv/bin/python3 scripts/pipeline.py --topic "X" --bank p5</td>
+          <td>Generate cheat sheet HTML + ConceptViz prompt (.txt) for topic X</td>
+        </tr>
+        <tr>
+          <td>venv/bin/python3 scripts/image_generator.py --topic "X" --bank p5</td>
+          <td>Generate ConceptViz (3-stage flow) and any TYPE D-PNG diagrams</td>
+        </tr>
+        <tr>
+          <td>… --variants 5</td>
+          <td>Generate more ConceptViz variants (default 3)</td>
+        </tr>
+        <tr>
+          <td>venv/bin/python3 scripts/pipeline.py --topic "X" --bank p5 --force-validation</td>
+          <td>Re-run validation even if cached result exists</td>
+        </tr>
+        <tr>
+          <td>venv/bin/python3 scripts/pipeline.py --topic "X" --bank p5 --force-html</td>
+          <td>Regenerate HTML even if it already exists</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setOS(os) {
+  document.querySelectorAll('.os-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.os-btn[onclick*="' + os + '"]').classList.add('active');
+  document.querySelectorAll('.os-section').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('#' + os + '-1, #' + os + '-10').forEach(el => el.style.display = 'block');
+}
+
+function copyCode(btn) {
+  const cmd = btn.dataset.cmd || '';
+  navigator.clipboard.writeText(cmd).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  }).catch(() => {
+    btn.textContent = 'Copy';
+  });
+}
+</script>
+</body>
+</html>

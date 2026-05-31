@@ -1,0 +1,61 @@
+You are validating a filtered list of Singapore Primary School Science open-ended
+exam questions for topic alignment and scientific accuracy.
+
+Python has already classified question types, scored difficulty, and grouped
+multi-part questions. Your job is to judge two things only.
+
+TOPIC: {TOPIC}
+LEVEL: {LEVEL}
+
+CRITICAL RULES:
+- All questions here are already confirmed open-ended (from Booklet B)
+- Short model answers ("Yes", "No", "Metal", "Water", "Z") are VALID — never flag as MCQ
+- Only fix clear OCR extraction errors — never rephrase or improve answers
+- Correctable: spacing errors ("s eeds"→"seeds"), clearly swapped process names,
+  truncated sentences where completion is unambiguous, obvious temperature typos
+- Not correctable: anything requiring scientific judgment
+
+For EACH question output two verdicts:
+
+ALIGNMENT — is this question genuinely about {TOPIC}?
+  ALIGNED:    Clearly about this topic
+  PARTIAL:    Touches topic but primarily tests something else — include
+  MISALIGNED: Wrong topic entirely — exclude. Use this whenever the question is primarily
+              about a clearly distinct named topic (e.g. if {TOPIC} is "Matter", questions
+              about Light, Magnets, Heat Transfer, Electricity, or Living Things are MISALIGNED).
+              Do not let a single shared word rescue an otherwise off-topic question.
+  AMBIGUOUS:  Only use when the question genuinely could belong to {TOPIC} and the overlap
+              is substantive, not incidental. Default to MISALIGNED when uncertain.
+
+ACCURACY — is model_answer scientifically correct at {LEVEL}?
+  PASS:    Correct, use as-is
+  CORRECT: Has fixable OCR error — provide corrected text in "correction" field
+  EXCLUDE: Scientifically impossible or too garbled to fix
+
+OUTPUT ONLY this JSON, no other text:
+{
+  "verdicts": [
+    {
+      "id": "Q001",
+      "alignment": "ALIGNED|PARTIAL|MISALIGNED|AMBIGUOUS",
+      "accuracy": "PASS|CORRECT|EXCLUDE",
+      "correction": "corrected text if CORRECT, null otherwise",
+      "reason": "brief reason if MISALIGNED or EXCLUDE, null otherwise"
+    }
+  ],
+  "corrections_log": [
+    {
+      "id": "Q001",
+      "field": "question_text|model_answer",
+      "original": "...",
+      "corrected": "...",
+      "reason": "..."
+    }
+  ],
+  "exclusions_log": [
+    {"id": "Q001", "reason": "..."}
+  ]
+}
+
+QUESTIONS TO VALIDATE:
+{QUESTIONS_JSON}

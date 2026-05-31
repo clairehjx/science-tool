@@ -1,0 +1,164 @@
+=== ITERATION PROMPT — grow Tier 2 helpers + retrofit existing helpers ===
+
+After each pipeline run produces a fresh cheatsheet HTML, paste this prompt
+verbatim into a new Claude conversation along with the latest HTML file. Claude
+will run TWO passes:
+  • Pass A — propose NEW Tier 2 helpers from raw <svg> blocks the LLM fell
+    back to (gap analysis)
+  • Pass B — audit EXISTING helpers and propose RETROFITS to bioicons /
+    SVGRepo paths where visual quality would meaningfully improve
+
+Each pass produces a separate drop-in patch so you can apply or skip each
+independently.
+
+--- COPY EVERYTHING BELOW THIS LINE ---
+
+I just produced a new science cheat-sheet HTML at:
+  /home/corwin/science_cheatsheet/output/html/cheatsheet_{SLUG}_{LEVEL}.html
+
+The pipeline already has Tier 1 frame helpers (dCompare, dDistinct, dScene,
+dFlow), Tier 3 ECharts helpers (ecBar, ecLine, ecPie), and Tier 2 sub-shape
+helpers in templates/script.js. Current Tier 2 inventory:
+
+  • water_heat_matter: dSun, dFlame, dBeaker, dKettle, dPuddle, dDroplet,
+    dCloud, dThermo, dContainer, dParticleGrid, dPlate, dCylinder, dRays,
+    dCup, dFunnel, dBalance, dIceCube, dBottle, dTray, dMist, dSpring
+  • biology: dPlant, dFlower, dLeaf, dAnimal, dOrgan, dSeed, dRoot
+  • electricity: dBattery, dBulb, dSwitch, dWire, dCircuit
+  • generic: dArrow, dLabel, dBox, dDashedLine
+
+Run BOTH passes below and output them as separate, independently-applicable
+patches.
+
+================================================================================
+PASS A — Gap analysis (propose NEW helpers)
+================================================================================
+
+1. Open the HTML and find every raw inline <svg>...</svg> block (i.e. SVG that
+   is NOT produced by an existing Tier 1/2 helper call). For each block,
+   identify the concrete object or shape being drawn (e.g. "spoon", "magnet",
+   "fish silhouette", "syringe", "gear", "rainbow arc").
+
+2. Group the shapes by repetition and reusability:
+   - HIGH PRIORITY: shape appears ≥2× in this HTML, OR is clearly a reusable
+     primary-school science object likely to recur in other topics.
+   - MEDIUM: appears once but is a recognisable reusable concept.
+   - SKIP: genuinely one-off / topic-specific scenes that don't compose.
+
+3. For each HIGH/MEDIUM candidate, propose a helper:
+   - Name (prefix `d`, camelCase, single-word noun: dSpoon, dMagnet, dFish)
+   - Domain bucket (water_heat_matter / biology / electricity, OR a NEW
+     bucket if the topic justifies it — e.g. `astronomy`, `forces`,
+     `human_body`. If proposing a new bucket, suggest the keyword list for
+     pipeline.py's TIER2_DOMAIN_KEYWORDS.)
+   - Signature: positional args first (cx, cy or x, y, w, h), opts last
+   - Source: bioicons URL (https://bioicons.com/) PREFERRED; SVGRepo URL
+     (https://www.svgrepo.com/, filtered to CC0/MIT) as fallback. Paste the
+     specific icon page URL. If no asset is suitable, write a procedural
+     implementation and say so.
+   - Implementation sketch: the helper body as a JS template literal returning
+     an SVG string. Inline path data from the source asset, replace fills with
+     palette colours from `dPal`, parametrise position/size.
+   - Token-savings estimate: chars of the raw block × number of occurrences.
+
+4. Output PASS A as a single drop-in patch I can append to
+   templates/script.js. Group by domain bucket. Match the existing helper
+   style (pure string return, JSDoc one-liner, `dPal` palette, no console
+   noise unless the id is missing).
+
+5. Also output for PASS A:
+   - One new worked example per HIGH-priority helper, ready to paste into
+     prompts/generation_prompt.txt under the matching domain section
+   - If a new bucket is needed: the TIER2_DOMAIN_KEYWORDS update, and the
+     <!--HELPER:newbucket-->...<!--/HELPER:newbucket--> fenced block to add
+     at the bottom of generation_prompt.txt.
+
+Please ONLY propose helpers backed by evidence in this HTML — don't invent
+shapes that aren't actually drawn. If everything is already covered, say so.
+
+================================================================================
+PASS B — Retrofit audit (REPLACE existing helpers with bioicons paths)
+================================================================================
+
+Most existing Tier 2 helpers were originally hand-coded with raw beziers and
+primitives. Some look chunky / childish in a not-great way and would benefit
+from a retrofit using paths sourced from bioicons (CC0) or SVGRepo (CC0/MIT).
+The dOrgan + dAnimal helpers have already been retrofitted. This pass audits
+the rest.
+
+6. Read templates/script.js (functions starting with `d` in the Tier 2 sections,
+   lines roughly 486–810). List every helper that emits a non-trivial recognisable
+   shape. SKIP:
+   - Pure primitives: dArrow, dLabel, dBox, dDashedLine
+   - Procedurally generated shapes that look fine: dSun, dFlame, dPuddle,
+     dDroplet, dCloud, dThermo, dRays, dParticleGrid, dContainer, dPlate,
+     dCylinder, dBeaker, dMist, dSpring, dBalance, dIceCube, dCup, dTray
+   - Helpers already retrofitted (look for `// source: bioicons` comment):
+     dOrgan, dAnimal
+
+7. For each remaining candidate, judge whether bioicons would *meaningfully*
+   improve visual quality. Heuristics:
+   - Anatomical / biological shapes (organs, animals, plants) → almost always YES
+   - Lab equipment (kettle, funnel) → sometimes; bioicons has cleaner proportions
+   - Schematic primitives (battery, bulb, switch, wire) → usually NO; the
+     simple schematic look is fine for primary-school circuits
+
+8. For each retrofit candidate, propose:
+   - bioicons URL (preferred) or SVGRepo URL (fallback). Both filtered to
+     CC0/MIT licences. PASTE THE SPECIFIC ICON PAGE URL.
+   - Replacement helper body — SAME signature, SAME `dPal` palette mapping,
+     no API breakage
+   - One-sentence rationale ("the current dKettle hand-draws the spout as a
+     simple triangle; the bioicons kettle has a curved spout meeting the body
+     properly and reads as a kettle at 30px")
+   - Risk note (any callers depending on exact output coordinates — the
+     generation_prompt.txt worked examples are the main concern)
+   - Add `// source: bioicons:<asset-id>` (or `// source: svgrepo:<asset-id>`)
+     comment above each retrofitted helper for licence traceability
+
+9. Output PASS B as a separate `=== RETROFITS ===` patch grouped under
+   domain headings. I should be able to apply it independently of the
+   PASS A patch — and to skip individual retrofits without breaking
+   anything else.
+
+Hold the line on STYLE CONSISTENCY: if you retrofit one helper in a bucket,
+prefer retrofitting the rest of that bucket from the SAME bioicons icon family
+so the page reads as one coherent illustration language. Don't mix flat-design
+icons with line-art icons within the same bucket.
+
+================================================================================
+OUTPUT FORMAT
+================================================================================
+
+Reply with exactly two sections:
+
+  === PASS A — NEW HELPERS ===
+  [drop-in patch for templates/script.js]
+  [worked-example additions for prompts/generation_prompt.txt]
+  [optional new-bucket additions for pipeline.py + generation_prompt.txt]
+
+  === PASS B — RETROFITS ===
+  [drop-in patch replacing existing helper bodies in templates/script.js]
+  [risk notes per helper]
+
+If a pass has nothing to propose ("everything covered"), say so explicitly
+and skip the patch for that pass.
+
+--- END OF COPY-PASTE BLOCK ---
+
+Workflow:
+
+1. Run `python scripts/pipeline.py --topic "X" --bank pY --force-html`
+2. Open the HTML in browser; spot-check rendering
+3. Paste the prompt above with `{SLUG}` and `{LEVEL}` filled in (e.g.
+   `cheatsheet_plants_p5.html`)
+4. Apply Pass A (new helpers + prompt examples)
+5. Apply Pass B retrofits selectively — pick the ones that look like clear
+   visual wins
+6. Update the "current Tier 2 inventory" preamble in this file when new
+   helpers ship (so the next iteration sees the full state)
+7. Re-run pipeline on the same topic with `--force-html`; confirm the new
+   helpers get used and SVG token count drops further
+
+Save the prompt verbatim at:
+  /home/corwin/science_cheatsheet/prompts/iterate_tier2_helpers.txt

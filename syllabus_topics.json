@@ -1,0 +1,316 @@
+{
+  "p3": {
+    "Diversity of Living and Non-Living Things": {
+      "description": "Identifying the shared characteristics of living things and classifying them into broad groups like plants, animals, fungi, and bacteria.",
+      "keywords": [
+        "characteristics",
+        "reproduce",
+        "flowering",
+        "non-flowering",
+        "mammals",
+        "birds",
+        "reptiles",
+        "amphibians",
+        "insects",
+        "fungi",
+        "bacteria",
+        "yeast",
+        "mould"
+      ]
+    },
+    "Diversity of Materials": {
+      "description": "Exploring the physical properties of various materials and relating them to their specific uses in everyday objects.",
+      "keywords": [
+        "metal",
+        "ceramic",
+        "rubber",
+        "plastic",
+        "fabric",
+        "strength",
+        "flexibility",
+        "waterproof",
+        "transparency",
+        "absorb",
+        "float",
+        "sink",
+        "properties"
+      ]
+    },
+    "Cycles in Plants and Animals (Life Cycles)": {
+      "description": "Comparing the different stages of growth and development that various plants and animals pass through during their lives.",
+      "keywords": [
+        "life cycle",
+        "seed",
+        "germination",
+        "seedling",
+        "adult plant",
+        "egg",
+        "larva",
+        "pupa",
+        "nymph",
+        "moulting",
+        "tadpole",
+        "stages"
+      ]
+    },
+    "Interaction of Forces (Magnets)": {
+      "description": "Learning about the properties of magnets, their interactions with magnetic materials, and how they exert push and pull forces.",
+      "keywords": [
+        "magnet",
+        "magnetic materials",
+        "non-magnetic",
+        "poles",
+        "attract",
+        "repel",
+        "iron",
+        "steel",
+        "North-South direction",
+        "stroke method",
+        "electrical method",
+        "suspension"
+      ]
+    }
+  },
+  "p4": {
+    "Plant System (Plant Parts and Functions)": {
+      "description": "Identifying the main parts of a plant and understanding the specific role each part plays in the plant's survival.",
+      "keywords": [
+        "root",
+        "stem",
+        "leaf",
+        "transport system",
+        "water-carrying tubes",
+        "food-carrying tubes",
+        "absorption",
+        "support",
+        "stomata",
+        "chlorophyll"
+      ]
+    },
+    "Human System (Digestive System)": {
+      "description": "Studying the organs of the human digestive system and how they work together to break down food for the body to use.",
+      "keywords": [
+        "mouth",
+        "gullet",
+        "stomach",
+        "small intestine",
+        "large intestine",
+        "digestion",
+        "digestive juices",
+        "saliva",
+        "bloodstream",
+        "rectum",
+        "anus",
+        "organ"
+      ]
+    },
+    "Cycles in Matter and Water (Matter)": {
+      "description": "Investigating the properties of matter, its definition as having mass and volume, and the differences between solids, liquids, and gases.",
+      "keywords": [
+        "matter",
+        "mass",
+        "volume",
+        "solid",
+        "liquid",
+        "gas",
+        "shape",
+        "compressible",
+        "occupies space",
+        "apparatus",
+        "electronic balance",
+        "displacement"
+      ]
+    },
+    "Energy Forms and Uses (Light)": {
+      "description": "Understanding how light travels, how shadows are formed, and the way light allows us to see objects.",
+      "keywords": [
+        "source of light",
+        "reflects",
+        "straight lines",
+        "shadow",
+        "opaque",
+        "translucent",
+        "transparent",
+        "silhouette",
+        "position",
+        "surface",
+        "blocked"
+      ]
+    },
+    "Energy Forms and Uses (Heat)": {
+      "description": "Exploring heat as a form of energy that flows from hotter to colder regions and measuring temperature using various instruments.",
+      "keywords": [
+        "heat",
+        "temperature",
+        "degree of hotness",
+        "thermometer",
+        "datalogger",
+        "expansion",
+        "contraction",
+        "conductor",
+        "insulator",
+        "gain heat",
+        "lose heat"
+      ]
+    }
+  },
+  "p5": {
+    "Cycles in Plants and Animals (Reproduction)": {
+      "description": "Examining how plants and humans reproduce to ensure the continuity of their kind and pass on traits to offspring.",
+      "keywords": [
+        "cell",
+        "pollination",
+        "fertilisation",
+        "seed dispersal",
+        "germination",
+        "stigma",
+        "anther",
+        "ovary",
+        "ovule",
+        "sperm",
+        "egg",
+        "womb",
+        "heredity"
+      ]
+    },
+    "Cycles in Matter and Water (Water)": {
+      "description": "Learning about the interchangeable states of water, the processes of the water cycle, and the importance of water conservation.",
+      "keywords": [
+        "melting",
+        "freezing",
+        "boiling",
+        "evaporation",
+        "condensation",
+        "water cycle",
+        "melting point",
+        "boiling point",
+        "surface area",
+        "humidity",
+        "pollution",
+        "clouds"
+      ]
+    },
+    "Human System (Respiratory and Circulatory Systems)": {
+      "description": "Understanding how the human body takes in oxygen, removes carbon dioxide, and transports nutrients through the blood.",
+      "keywords": [
+        "nose",
+        "windpipe",
+        "lungs",
+        "air sacs",
+        "heart",
+        "blood",
+        "blood vessels",
+        "oxygen",
+        "carbon dioxide",
+        "nitrogen",
+        "pulse rate",
+        "circulatory",
+        "respiratory"
+      ]
+    },
+    "Plant System (Respiratory and Circulatory Systems)": {
+      "description": "Investigating how food and water are transported throughout a plant via a system of specialised tubes.",
+      "keywords": [
+        "xylem",
+        "phloem",
+        "transport system",
+        "water-carrying tubes",
+        "food-carrying tubes",
+        "roots",
+        "stem",
+        "leaves",
+        "minerals",
+        "transpiration",
+        "survival"
+      ]
+    },
+    "Electrical System": {
+      "description": "Building and exploring electric circuits to understand how electricity flows and how different components affect the current.",
+      "keywords": [
+        "electric circuit",
+        "battery",
+        "wire",
+        "bulb",
+        "switch",
+        "closed circuit",
+        "open circuit",
+        "conductor",
+        "insulator",
+        "series",
+        "parallel",
+        "current"
+      ]
+    }
+  },
+  "p6": {
+    "Energy Forms and Uses (Photosynthesis)": {
+      "description": "Studying how plants use sunlight, water, and carbon dioxide to produce their own food through photosynthesis.",
+      "keywords": [
+        "respiration",
+        "energy",
+        "Sun",
+        "photosynthesis",
+        "sugar",
+        "starch",
+        "oxygen",
+        "carbon dioxide",
+        "chlorophyll",
+        "light energy",
+        "stomata",
+        "producers"
+      ]
+    },
+    "Energy Conversion": {
+      "description": "Exploring the various forms of energy and understanding how energy is converted from one form to another to do work.",
+      "keywords": [
+        "kinetic energy",
+        "potential energy",
+        "chemical potential",
+        "gravitational potential",
+        "elastic potential",
+        "light energy",
+        "electrical energy",
+        "sound energy",
+        "heat energy",
+        "conversion",
+        "conservation"
+      ]
+    },
+    "Interaction of Forces": {
+      "description": "Identifying different types of forces, such as gravity and friction, and investigating their effects on the motion and shape of objects.",
+      "keywords": [
+        "force",
+        "push",
+        "pull",
+        "magnetic force",
+        "gravitational force",
+        "elastic spring force",
+        "frictional force",
+        "motion",
+        "speed",
+        "direction",
+        "shape",
+        "weight",
+        "gravity"
+      ]
+    },
+    "Interactions within the Environment": {
+      "description": "Investigating the relationships between living things and their environment, including food chains, habitats, and the impact of human activities.",
+      "keywords": [
+        "organism",
+        "population",
+        "community",
+        "habitat",
+        "producers",
+        "consumers",
+        "predators",
+        "prey",
+        "decomposers",
+        "food chain",
+        "food web",
+        "adaptations",
+        "global warming"
+      ]
+    }
+  }
+}

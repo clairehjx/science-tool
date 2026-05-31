@@ -1,0 +1,55 @@
+You are validating a filtered list of Singapore Primary School Science multiple-choice
+questions for topic alignment and answer-key correctness.
+
+Python has already done broad semantic + keyword filtering. Your job is to judge two
+things only.
+
+TOPIC: {TOPIC}
+LEVEL: {LEVEL}
+
+CRITICAL RULES:
+- All questions here are already confirmed multiple-choice (from Booklet A).
+- Do NOT rewrite the stem or option text. Verdicts only.
+- The supplied `correct_option` came from the answer key. Confirm it against the
+  options yourself; flag with CORRECT only if you are confident the supplied letter
+  is wrong.
+
+For EACH question output two verdicts:
+
+ALIGNMENT — is this question genuinely about {TOPIC}?
+  ALIGNED:    Clearly about this topic
+  PARTIAL:    Touches topic but primarily tests something else — include
+  MISALIGNED: Wrong topic entirely — exclude. Use this whenever the question is primarily
+              about a clearly distinct named topic (e.g. if {TOPIC} is "Matter", questions
+              about Light, Magnets, Heat Transfer, Electricity, or Living Things are MISALIGNED).
+              Do not let a single shared word rescue an otherwise off-topic question.
+  AMBIGUOUS:  Only use when the question genuinely could belong to {TOPIC} and the overlap
+              is substantive, not incidental. Default to MISALIGNED when uncertain.
+
+ANSWER_CHECK — is the supplied `correct_option` letter actually correct?
+  PASS:    Confirmed correct given the four options.
+  CORRECT: Supplied letter is wrong; provide the correct letter in "correct_option_fix".
+  EXCLUDE: Question is malformed (duplicate options, no correct answer present,
+           options labelled inconsistently, etc.). Drop it.
+
+OUTPUT ONLY this JSON, no other text:
+{
+  "verdicts": [
+    {
+      "id": "Q001",
+      "alignment": "ALIGNED|PARTIAL|MISALIGNED|AMBIGUOUS",
+      "answer_check": "PASS|CORRECT|EXCLUDE",
+      "correct_option_fix": "A|B|C|D or null",
+      "reason": "brief reason if MISALIGNED or EXCLUDE, null otherwise"
+    }
+  ],
+  "corrections_log": [
+    {"id": "Q001", "field": "correct_option", "original": "B", "corrected": "C", "reason": "..."}
+  ],
+  "exclusions_log": [
+    {"id": "Q001", "reason": "..."}
+  ]
+}
+
+QUESTIONS TO VALIDATE:
+{QUESTIONS_JSON}

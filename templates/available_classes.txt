@@ -1,0 +1,32 @@
+=== AVAILABLE CSS CLASSES — use only these; never invent new class names or write <style> blocks ===
+
+Layout:           card, stats-grid, stat-card, stat-number, stat-label
+Schools:          schools-card, schools-grid, school-pill
+Q-types:          qt-stats, qt-stat
+Concepts:         concepts-grid, concept-card, concept-number, concept-title, concept-desc,
+                  concept-keywords, concept-title-row, concept-count
+Callouts:         wrong, correct, warning, info, fix-box, oe-challenge-box, link-word-box, formula-reminder
+Spans:            keyword, link-word
+Answers:          answer-box, answer-correct-example, answer-wrong-example, answer-example,
+                  speech-bubble-wrong, speech-bubble-correct, marks-badge, marks-wrong, marks-correct,
+                  answer-structure, answer-part-obs, answer-part-link, answer-part-reason, answer-arrow
+Questions:        question-box, mark-breakdown, mark-row, mark-number, mark-desc
+Multipart:        multipart-wrapper, multipart-banner, multipart-banner-text, multipart-parts-info,
+                  multipart-source, context-part-card, context-part-header, context-answer-box,
+                  context-answer-label, context-given-badge, context-info-note,
+                  focus-part-card, focus-part-header, your-answer-badge, parent-diagram-box,
+                  parent-diagram-label, single-question-card
+Formulas:         formula-card, formula-display, avoid-item, universal-checklist, u-check-item, u-check-icon
+Comparison:       comparison
+Badges:           badge, badge-blue, badge-green, badge-yellow, badge-red, badge-purple, badge-orange,
+                  badge-school, badge-level, badge-explain, badge-state, badge-describe, badge-compare,
+                  badge-suggest, badge-predict, badge-reason, badge-other, badge-hard, badge-medium,
+                  badge-easy, badge-critical, badge-important, badge-helpful
+Chips:            chip, chip-missing, chip-required, chip-keyword, chip-link
+Buttons:          toggle-btn, nav-btns, nav-btn, filter-btns, filter-btn
+Diagrams:         diagram-container, diagram-caption, gemini-placeholder, conceptviz-placeholder,
+                  roughviz-svg
+Flip cards:       flip-card, flip-card-inner, flip-front, flip-back, flip-hint
+Section titles:   section-title, item-counter
+Keywords tab:     keyword-grid, keyword-card, keyword-freq, keyword-usage
+Master Summary:   summary-diagram-section, summary-diagram-label

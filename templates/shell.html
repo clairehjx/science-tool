@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TOPIC}} — {{LEVEL}} Science Cheat Sheet</title>
+<style>
+{{STYLES}}
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/roughjs@4/bundled/rough.js"></script>
+<script>
+{{SCRIPT}}
+</script>
+</head>
+<body>
+
+<div class="header">
+  <h1>{{TOPIC}}</h1>
+  <p>Singapore Primary {{LEVEL_NUM}} Science — Open-Ended Exam Mastery Guide</p>
+  <div class="header-badges">
+    <span class="level-badge">{{LEVEL}}</span>
+    <span class="oe-badge">Open-Ended (Booklet B)</span>
+    <span class="level-badge">{{TOTAL_SCHOOLS}} Schools</span>
+    <span class="level-badge">{{TOTAL_QUESTIONS}} Questions</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="overall-fill"></div></div>
+  <div class="progress-text" id="overall-text">0% studied</div>
+</div>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab-id="overview"     onclick="showTab('overview')"><span class="tab-icon">📊</span>Overview</button>
+  <button class="tab-btn"        data-tab-id="questions"    onclick="showTab('questions')"><span class="tab-icon">🎯</span>Top Questions</button>
+  <button class="tab-btn"        data-tab-id="mistakes"     onclick="showTab('mistakes')"><span class="tab-icon">⚠️</span>Common Mistakes</button>
+  <button class="tab-btn"        data-tab-id="distinctions" onclick="showTab('distinctions')"><span class="tab-icon">⚖️</span>Critical Distinctions</button>
+  <button class="tab-btn"        data-tab-id="keywords"     onclick="showTab('keywords')"><span class="tab-icon">🔑</span>Keywords to Write</button>
+  <button class="tab-btn"        data-tab-id="traps"        onclick="showTab('traps')"><span class="tab-icon">❌</span>Wrong Answers</button>
+  <button class="tab-btn"        data-tab-id="formula"      onclick="showTab('formula')"><span class="tab-icon">📐</span>Answer Formula</button>
+  <button class="tab-btn"        data-tab-id="summary"      onclick="showTab('summary')"><span class="tab-icon">🗺️</span>Master Summary</button>
+  <button class="tab-btn"        data-tab-id="progress"     onclick="showTab('progress')"><span class="tab-icon">📈</span>Study Progress</button>
+</nav>
+
+<div id="tab-overview" class="tab-content active">
+{{OVERVIEW}}
+</div>
+
+<div id="tab-questions" class="tab-content">
+{{QUESTIONS}}
+</div>
+
+<div id="tab-mistakes" class="tab-content">
+{{MISTAKES}}
+</div>
+
+<div id="tab-distinctions" class="tab-content">
+{{DISTINCTIONS}}
+</div>
+
+<div id="tab-keywords" class="tab-content">
+{{KEYWORDS}}
+</div>
+
+<div id="tab-traps" class="tab-content">
+{{TRAPS}}
+</div>
+
+<div id="tab-formula" class="tab-content">
+{{FORMULA}}
+</div>
+
+<div id="tab-summary" class="tab-content">
+{{SUMMARY}}
+</div>
+
+<div id="tab-progress" class="tab-content">
+  <h2 class="section-title">Your {{LEVEL}} Open-Ended Study Progress</h2>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <strong>Overall Progress</strong>
+      <span id="overall-text-2" style="font-weight:700;color:#4D96FF">0% studied</span>
+    </div>
+    <div style="background:#E5E9F0;border-radius:6px;height:14px;overflow:hidden">
+      <div id="overall-fill-2" style="height:100%;border-radius:6px;background:linear-gradient(135deg,#4D96FF,#B388FF);width:0%;transition:width 0.6s"></div>
+    </div>
+  </div>
+
+  <div class="progress-dashboard">
+    <div class="progress-stat">
+      <div class="number" id="questions-progress">0</div>
+      <div class="label">Questions Studied</div>
+      <div class="sub">of <span id="questions-total">0</span></div>
+      <div class="bar"><div class="bar-fill" id="questions-bar"></div></div>
+    </div>
+    <div class="progress-stat">
+      <div class="number" id="mistakes-progress">0</div>
+      <div class="label">Mistakes Reviewed</div>
+      <div class="sub">of <span id="mistakes-total">0</span></div>
+      <div class="bar"><div class="bar-fill" id="mistakes-bar"></div></div>
+    </div>
+    <div class="progress-stat">
+      <div class="number" id="traps-progress">0</div>
+      <div class="label">Traps Identified</div>
+      <div class="sub">of <span id="traps-total">0</span></div>
+      <div class="bar"><div class="bar-fill" id="traps-bar"></div></div>
+    </div>
+    <div class="progress-stat">
+      <div class="number" id="distinctions-progress">0</div>
+      <div class="label">Distinctions Known</div>
+      <div class="sub">of <span id="distinctions-total">0</span></div>
+      <div class="bar"><div class="bar-fill" id="distinctions-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="formula-reminder">
+    Universal {{LEVEL}} Open-Ended Answer Formula:
+    <strong>[Observation] + BECAUSE + [Scientific reason with topic keyword]</strong>
+  </div>
+
+  <div class="motivational">
+    <p id="motivation-msg">Start practising to improve your {{LEVEL}} open-ended answers!</p>
+  </div>
+
+  <div style="text-align:center;margin-top:14px">
+    <button onclick="resetProgress()" style="padding:9px 22px;background:white;border:1px solid #E5E9F0;border-radius:10px;cursor:pointer;font-size:13px;color:#666;font-weight:600">
+      Reset Progress
+    </button>
+  </div>
+</div>
+
+</body>
+</html>

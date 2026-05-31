@@ -1,0 +1,124 @@
+You are extracting exam questions from a Singapore Primary School Science exam paper.
+
+CRITICAL TASK: Extract ONLY open-ended questions — NOT multiple choice.
+
+School: {SCHOOL}
+Year: {YEAR}
+Level: {LEVEL}
+
+APPROVED TOPIC NAMES — use these exactly, pick the closest match:
+{TOPICS}
+
+WHAT ARE OPEN-ENDED QUESTIONS?
+- Questions requiring written answers: Explain, Describe, State, Give a reason,
+  Name, Calculate, List, Why
+- Questions with blank spaces to write answers
+- NOT questions with options A, B, C, D
+- Include ALL sub-parts (if Q31 has parts a, b, c — extract each separately)
+
+OUTPUT: A JSON array.
+
+PARENT entry (one per question number — single-part OR multi-part):
+{
+  "parent_question_id": "31",
+  "sub_question_part": "none",
+  "question_text": "intro / scene-setting text shared across sub-parts, or the full question for single-part questions; empty string if the parent has no text of its own",
+  "diagrams_and_tables": [
+    {"type": "diagram|table|graph|circuit|image|flowchart", "description": "..."}
+  ],
+  "model_answer": "model answer for single-part questions; empty string for multi-part parents",
+  "marks": 0,
+  "topic": "exact topic name from APPROVED TOPIC NAMES above",
+  "difficulty": 5,
+  "page_number": 7,
+  "parent_bbox": {
+    "top_y_norm": 80,
+    "bottom_y_norm": 1000,
+    "ends_on_page": 8,
+    "ends_at_y_norm": 540
+  }
+}
+
+SUB-PART entry (one per (a), (b), (c), … of a multi-part question):
+{
+  "parent_question_id": "31",
+  "sub_question_part": "a",
+  "question_text": "the actual sub-part question, verbatim",
+  "diagrams_and_tables": [],
+  "model_answer": "answer from answer key, verbatim",
+  "marks": 2,
+  "topic": "exact topic name from APPROVED TOPIC NAMES above",
+  "difficulty": 5
+}
+
+NOTE — sub-parts DO NOT carry page_number or parent_bbox. The parent owns those
+and downstream code looks them up via parent_question_id. Do NOT duplicate.
+
+DIFFICULTY SCALE (integer 1–10, 0 for parent-only entries with no answer):
+1–2  Single recall fact, one word or phrase answer
+3–4  Simple application, one sentence, directly stated in syllabus
+5–6  Requires explanation or linking two concepts, 1–2 marks
+7–8  Multi-step reasoning, diagram interpretation, or compare/contrast
+9–10 Complex analysis, multi-part reasoning chain, 3+ marks required
+
+PARENT vs SUB-PART RULES:
+- Single-part question (no (a)/(b)/(c) splits): emit ONE parent entry with the
+  full question_text and model_answer. No sub-part entries.
+- Multi-part question: emit ONE parent entry (sub_question_part="none") capturing
+  any shared diagrams and any intro/scene text (or empty strings if there is
+  none of either) PLUS one entry per sub-part (a, b, c, …). The parent's
+  question_text is the shared intro only — never the sub-part text.
+- Sub-parts inherit the parent's shared diagrams via parent_question_id —
+  do not repeat parent diagrams in sub-part `diagrams_and_tables`.
+- ALWAYS emit the parent entry for multi-part questions, even when it has no
+  intro text and no shared diagram — the parent still owns page_number + bbox.
+
+PAGE NUMBER + PARENT_BBOX RULES — REQUIRED on parent entries only:
+- page_number: 1-indexed PDF page where the question STARTS.
+- parent_bbox.top_y_norm:    int 0..1000, top edge of the question block on
+                             `page_number` (0 = top of page, 1000 = bottom).
+- parent_bbox.bottom_y_norm: int 0..1000, bottom edge on `page_number`. If the
+                             question continues onto a later page, set to 1000.
+- parent_bbox.ends_on_page:  1-indexed PDF page where the LAST sub-part of the
+                             question ends. Equal to `page_number` when no spanning.
+- parent_bbox.ends_at_y_norm: int 0..1000, bottom edge on `ends_on_page`. Equal
+                             to `bottom_y_norm` when no spanning.
+- The bbox must enclose the ENTIRE question (intro + shared diagram + ALL
+  sub-parts), not just one sub-part. Be tight: exclude the next question and
+  substantial blank margins.
+- All four bbox fields are REQUIRED on every parent entry — never null. If you
+  genuinely cannot locate a question on any page, omit BOTH the parent and its
+  sub-parts entirely from the output.
+
+DIAGRAM DESCRIPTION RULES — be extremely detailed:
+
+For diagrams/illustrations:
+- Describe WHAT the diagram shows and all labeled parts with letters/numbers
+- Include measurements, scales, quantities, positions, arrows, annotations
+- Describe relationships between elements and any process indicators
+
+For tables:
+- List all column headers exactly as shown, including units
+- Describe all row labels and data ranges
+- Note any patterns
+
+For graphs:
+- Both axes: labels and full scale (min, max, intervals)
+- All data points or trend description
+- Legend information, colors, line styles
+- Key features: peaks, valleys, plateaus, inflection points
+
+For circuits:
+- All components: battery, bulb, switch, resistor, ammeter, voltmeter
+- Series vs parallel arrangement
+- Current flow direction if shown, open vs closed switches
+
+For life cycles / flowcharts:
+- Each stage in order
+- What happens at each stage
+- Arrows and flow direction, any decision points
+
+GENERAL RULES:
+- Extract model answers from the answer key at the back of the paper
+- Maintain chronological order: Q31, Q31a, Q31b, Q32...
+- Output ONLY the JSON array, no other text

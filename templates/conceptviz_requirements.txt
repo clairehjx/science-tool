@@ -1,0 +1,136 @@
+=== CONCEPTVIZ STRUCTURED CONTENT REQUIREMENTS ===
+
+The HTML LLM (gemini-3.1-pro) does NOT produce a final image prompt. It produces
+STRUCTURED CONTENT inside the conceptviz-placeholder div. image_generator.py reads
+that content, calls a prompt-shaper LLM (gemini-3-flash) to combine it with a
+visual style template, then feeds the resulting prompt to nano-banana-2 for the PNG.
+
+Output the following YAML-style blocks INSIDE the conceptviz-placeholder div, in
+this exact order. Do NOT prefix with markdown fences. Do NOT write prose paragraphs.
+Mine {VALIDATED_JSON} thoroughly — every field below comes from real questions.
+
+REQUIRED OUTPUT FORMAT (verbatim — image_generator parses this):
+
+SUB_TOPICS:
+  - name: {2-4 word name}
+    summary: {one-line ≤55 chars — the card subheading}
+    details:
+      - {short bullet ≤25 chars}
+      - {short bullet ≤25 chars}
+      - {3-5 bullets total — each becomes a labelled mini-icon inside the card}
+  - {...}
+  (4-5 sub-topics derived from distinct values of question["topic_sub_category"])
+
+PROCESS_FLOW:  # OPTIONAL — include for cyclical/sequential topics (water cycle, life cycle, digestion path)
+  - {short stage label, ≤20 chars}
+  - {...}
+  (3-6 stages — rendered as a horizontal labelled arrow chain)
+
+CATEGORY_STRIP:  # OPTIONAL — for taxonomies/lists worth showing as a footer row
+  - {short label, ≤14 chars}
+  - {...}
+  (3-7 items — rendered as a horizontal labelled icon strip just above KEY_TAKEAWAY)
+
+EXAM_KEYWORDS: {comma-separated list of 12-18 keywords from model_answers,
+  in order of subject relevance — examiners' expected vocabulary}
+
+QA_PAIRS:
+  - Q: "{verbatim question_text, truncated to ≤70 chars}"
+    A: "{verbatim model_answer, truncated to ≤110 chars}"
+  - {...}
+  (4-5 items picked from the hardest difficulty_score questions)
+
+CAUSAL_PAIRS:
+  - {trigger / observation} BECAUSE {scientific reason with topic keyword}
+  - {...}
+  (3-5 items extracted from model_answers using "because", "allows",
+   "prevents", "causes", "so that")
+
+CLASSIFICATION:
+  POSITIVE_LABEL: {short label, e.g. "Matter"}
+  POSITIVE_EXAMPLES: {comma-separated, drawn from model_answers}
+  NEGATIVE_LABEL: {short label, e.g. "Non-matter"}
+  NEGATIVE_EXAMPLES: {comma-separated, drawn from model_answers}
+  AXIS: {one-line distinguishing property}
+  (Omit this whole block ONLY if the topic has no fundamental binary classification)
+
+KEY_TAKEAWAY: {single sentence, ≤140 chars, summarising the topic's core principle
+  using exam keywords — appears in the yellow strip at bottom of the image}
+
+SCENE_HINT: {one-sentence visual scene appropriate to topic — concrete objects
+  and setting an illustrator could draw as a watercolour background. Avoid abstractions.}
+
+CARD_LAYOUT_HINT: {2x2 | 3x1 | 4x1 | 1+3} — pick based on number of SUB_TOPICS
+
+EXAMPLE for "Matter" topic at P4 level:
+
+SUB_TOPICS:
+  - name: Three States
+    summary: Solid, liquid, gas — shape and volume rules
+    details:
+      - Solid: keeps shape
+      - Liquid: keeps volume
+      - Gas: keeps neither
+      - Particles tightly packed
+  - name: Occupies Space
+    summary: Air and water take up space; shadow does not
+    details:
+      - Air in inverted cup
+      - Water rises with pebbles
+      - Shadow has no space
+      - Sound is not matter
+  - name: Air Properties
+    summary: Compressed, expands, has mass, escapes through holes
+    details:
+      - Plunger compresses air
+      - Heat → expands
+      - Has mass (bouncy castle)
+      - Escapes through holes
+  - name: Mass and Volume
+    summary: Displacement method; fully submerged
+    details:
+      - Use measuring cylinder
+      - Fully submerged object
+      - Water level rise = volume
+      - Use balance for mass
+
+PROCESS_FLOW:
+  # (omit for Matter — there is no natural sequence; include for cycles/life-cycle topics)
+
+CATEGORY_STRIP:
+  - Solid
+  - Liquid
+  - Gas
+  - Has mass
+  - Occupies space
+
+EXAM_KEYWORDS: occupies space, definite shape, definite volume, compressed, expands, has mass, waterproof, flexible, rigid, floats, sinks, fully submerged, water level rises, escaped, takes up space, displaced
+
+QA_PAIRS:
+  - Q: "Why didn't water enter Cup A (no hole)?"
+    A: "Air trapped inside Cup A takes up space and prevents water from entering."
+  - Q: "Did air or water allow the plunger to be pushed in?"
+    A: "Air. Air can be compressed while water cannot be compressed."
+  - Q: "How does hot water un-dent the ping pong ball?"
+    A: "Air in the ping pong ball gains heat from the hot water and expands."
+  - Q: "Why couldn't Mohan measure object Z's volume?"
+    A: "Z is not fully submerged in the water."
+
+CAUSAL_PAIRS:
+  - Air occupies space BECAUSE matter takes up space → water cannot enter inverted cup
+  - Air gains heat BECAUSE heat energy → expands → ping pong ball pops back to shape
+  - Pebbles occupy space BECAUSE matter takes up space → water level rises
+  - More air pumped BECAUSE air has mass → bouncy castle gets heavier
+
+CLASSIFICATION:
+  POSITIVE_LABEL: Matter
+  POSITIVE_EXAMPLES: air, water, sand, milk, solid objects
+  NEGATIVE_LABEL: Non-matter
+  NEGATIVE_EXAMPLES: shadow, sound, light
+  AXIS: Has mass and occupies space
+
+KEY_TAKEAWAY: All matter has mass and occupies space · Solid keeps shape · Liquid keeps volume · Gas keeps neither
+
+SCENE_HINT: A bright primary-school science classroom corner with a wooden lab table holding a glass of water, an ice cube on a plate, a balloon, a wooden block, a metal spoon, and a small sponge.
+
+CARD_LAYOUT_HINT: 2x2

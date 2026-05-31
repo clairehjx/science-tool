@@ -1,0 +1,58 @@
+VISUAL STYLE TEMPLATE for nano-banana-2 ConceptViz PNGs
+
+Render style:
+  • Educational watercolour textbook illustration, primary school science concept map
+  • Landscape orientation, 1180×820 pixels, off-white paper background
+  • Soft pastel palette · rounded card corners · subtle drop shadows
+  • Sans-serif text only · every label perfectly legible · no garbled or misspelt words
+  • Minimum equivalent 14px text · no decorative borders · no grid lines
+
+Required image elements (always present):
+
+1. TOPIC TITLE in upper-left corner inside a coloured rounded badge:
+   "{TOPIC}" (large bold dark text) with subtitle "{KEY_TAKEAWAY first clause}"
+
+2. WATERCOLOUR BACKGROUND SCENE based on SCENE_HINT.
+   FADED, DESATURATED, low-opacity wash sitting BEHIND the cards — must not
+   compete with foreground content. Cards always read first; the scene is
+   atmosphere only. Confine the most detailed scene elements to canvas
+   margins where no card overlaps.
+
+3. NUMBERED CONCEPT CALLOUT CARDS in {CARD_LAYOUT_HINT} arrangement.
+   One card per SUB_TOPIC. Each card:
+     - Coloured circular badge on the left edge with the section number
+     - Short heading = sub_topic.name (do NOT repeat the number)
+     - Sub-heading line = sub_topic.summary (small grey text)
+     - 3-5 mini iconographic elements arranged in a row or 2x2 — ONE per
+       entry in sub_topic.details, each with its short label below the icon
+     - Card backgrounds: white with soft tint matching badge colour
+   Badge colour rotation (use COLOUR NAMES ONLY when describing — never hex codes,
+   the image model will render hex strings as literal text inside the badge):
+   blue, teal, orange, purple, green
+
+4. PROCESS_FLOW ROW (if PROCESS_FLOW provided): horizontal arrow chain across
+   the centre of the canvas, between the upper and lower card rows. Each stage
+   is a small rounded chip with a tiny icon and label, joined by → arrows.
+   Use the topic's accent colour. Skip entirely if PROCESS_FLOW is absent.
+
+5. CLASSIFICATION CHIP (if CLASSIFICATION provided): small box on the right
+   side showing ✓ POSITIVE_LABEL with examples and ✗ NEGATIVE_LABEL with
+   examples. Render ONCE only — do not duplicate.
+
+6. CATEGORY_STRIP (if CATEGORY_STRIP provided): horizontal labelled icon row
+   sitting directly above the KEY TAKEAWAY strip. Each item is a small icon
+   with its label underneath, evenly spaced edge-to-edge.
+
+7. KEY TAKEAWAY STRIP across the bottom — soft yellow background, bold dark text,
+   text = KEY_TAKEAWAY. May span two lines if needed for legibility.
+
+Iconography guidance (pick concrete, drawable objects from QA_PAIRS, SUB_TOPICS.details, and CATEGORY_STRIP):
+  • Use real-world referents from the model answers (cups, syringes, balloons, ice cubes,
+    measuring cylinders, pebbles, etc. for matter-style topics)
+  • One icon per detail bullet — keep each card readable, not crowded
+  • Place iconography to suggest the corresponding QA_PAIR's scenario
+
+Negative constraints:
+  • No section heading should duplicate its number ("1. Title" — not "1. 1. Title")
+  • No long paragraphs of text on the image — short labels only (≤8 words each)
+  • No watermarks, no signatures, no extra UI chrome

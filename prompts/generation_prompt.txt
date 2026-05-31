@@ -1,0 +1,702 @@
+You are creating the dynamic content for a Singapore Primary School Science open-ended exam cheat sheet.
+
+Python wraps your output in a pre-built HTML shell that already contains the <head>, <style>, header,
+tab navigation, the static Study Progress tab, and the closing <script> + </body> tags. You produce
+only the inner HTML for the SEVEN dynamic tabs listed below and return them as a JSON object.
+
+The "Top Questions" tab is populated by a separate Python post-processor that crops the original PDF
+images and adds per-sub-part flip buttons — DO NOT render it here, do not include a "questions" key.
+
+=== INPUTS ===
+Topic: {TOPIC}
+Level: {LEVEL}
+Processing Summary: {SUMMARY_JSON}
+Validated Questions (use these for keyword/mistake/distinction/trap content; sorted hardest first): {VALIDATED_JSON}
+
+=== OUTPUT FORMAT (CRITICAL) ===
+
+Return ONLY a JSON object — no prose, no markdown fences. Exactly these seven keys:
+
+{
+  "overview":     "...HTML for the Overview tab...",
+  "mistakes":     "...HTML for the Common Mistakes tab...",
+  "distinctions": "...HTML for the Critical Distinctions tab...",
+  "keywords":     "...HTML for the Keywords to Write tab...",
+  "traps":        "...HTML for the Wrong Answers tab...",
+  "formula":      "...HTML for the Answer Formula tab...",
+  "summary":      "...HTML for the Master Summary tab..."
+}
+
+The available CSS classes are listed at the bottom. Use only those classes — do not invent new ones
+and do not write inline <style> blocks.
+
+=== ABSOLUTE RULES ===
+
+R1. SYNTHESIZE FROM INPUT, NEVER FABRICATE.
+All content must derive from {VALIDATED_JSON} and {SUMMARY_JSON}. Do not import facts, vocabulary,
+or examples from outside these inputs. Do not reuse content from any prior cheat sheet.
+
+R2. TEXT FIDELITY.
+question_text and model_answer: VERBATIM — not one word changed, added, or removed.
+Allowed transformations only:
+  Wrap a topic keyword: <span class="keyword" data-tip="Write this in your {LEVEL} answer — examiners look for this word">[keyword]</span>
+  Wrap a linking word:  <span class="link-word">[word]</span>
+For synthesized sections (mistakes, traps, distinctions, formulas, concepts, summary captions): you
+write the text yourself, but every word must be derivable from input patterns.
+
+R3. FOUR DIAGRAM TYPES — CHOOSE THE RIGHT ONE EACH TIME.
+
+Do NOT use <div class="mermaid"> — Mermaid is no longer included.
+Do NOT emit <img> tags for external URLs. Do NOT use <canvas> directly (use ECharts API).
+Inline SVG is allowed ONLY for TYPE D-SVG and TYPE A3 (Rough.js). Never emit bare SVG outside a diagram-container div.
+
+For every diagram location choose one of four types:
+
+TYPE A1 — Sortable table (Tailwind + tsTable):
+  Use when: comparing 2+ items across 3+ properties, or displaying rows-and-columns data.
+  NOT for simple 2-column side-by-side text comparisons — use TYPE D for those.
+  Output inline in the tab HTML:
+    <div class="diagram-container">
+      <div id="tbl-[X]"></div>
+      <script>
+      tsTable('tbl-[X]',
+        ['Property', 'Boiling', 'Evaporation'],
+        [
+          ['Temperature', '100°C only', 'Any temperature'],
+          ['Location', 'Whole liquid', 'Surface only'],
+          ['Speed', 'Fast (bubbles)', 'Slow'],
+        ]
+      );
+      </script>
+    </div>
+  Use unique IDs (tbl-1, tbl-2 …). Column headers are plain text. Cell values may contain
+  HTML (e.g. <span class="keyword">…</span>). Tables are rendered inline — no placeholder needed.
+
+TYPE A2 — Data chart (Apache ECharts):
+  Use when: content is best shown as a bar, line, or pie chart — comparing quantities,
+  showing change over time, or showing distributions.
+  NOT for process flows or property comparisons.
+
+  PREFERRED: use the ec helpers (compact, default tooltip/palette/grid/resize):
+    ecBar(id, title, xLabels, series, opts?)
+    ecLine(id, title, xLabels, series, opts?)
+    ecPie(id, title, items)
+      series: number array (single series) OR [{name,data,color?},...]
+      items:  [{name, value}, ...]
+      opts:   {yName?}
+
+    <div class="diagram-container">
+      <div id="ec-1" style="width:100%;height:260px"></div>
+      <script>
+      ecBar('ec-1', 'Boiling vs evaporation speed', ['Boiling','Evaporation'], [100, 25], {yName:'Drops/min'});
+      </script>
+    </div>
+
+  Raw fallback (only when defaults don't fit — e.g. dual axes, custom legends):
+    <div class="diagram-container">
+      <div id="ec-X" style="width:100%;height:260px"></div>
+      <script>
+      (function(){ const c = echarts.init(document.getElementById('ec-X')); c.setOption({...}); window.addEventListener('resize', ()=>c.resize()); })();
+      </script>
+    </div>
+  Use unique IDs (ec-1, ec-2 …). Charts are rendered inline — no placeholder needed.
+
+TYPE A3 — Simple sketch diagram (Rough.js SVG):
+  Use when: process flow (3–5 steps), formula flowchart, before/after, state transition.
+  Use for ALL formula tab flowcharts. NOT for complex multi-panel diagrams → use TYPE D.
+
+  Global helpers are pre-loaded — do NOT redefine t/ah/rvt/rvah inline:
+    rvt(s, txt, x, y, opts)                            — SVG text; opts: {a,fs,c,b}
+    rvah(s, x, y, dir, color)                          — arrow head; dir='r'|'d'
+    rvNode(s, rc, x, y, w, h, fill, stroke, label, sub) — box + 1-2 text lines
+
+  Canvas: viewBox="0 0 500 160" for 2-3 nodes; "0 0 680 160" for 4 nodes.
+    <div class="diagram-container">
+      <svg id="rv-[X]" viewBox="0 0 500 160" width="100%"
+           class="roughviz-svg" style="max-height:180px"></svg>
+      <script>
+      (function(){
+        const s = document.getElementById('rv-[X]');
+        const rc = rough.svg(s);
+        rvNode(s, rc, 25,55,145,50, '#E5F5FF','#4D96FF', 'Observation','(what you see)');
+        s.appendChild(rc.line(170,80,215,80,{stroke:'#FFA500',strokeWidth:2,roughness:1}));
+        rvah(s,216,80,'r'); rvt(s,'BECAUSE',193,73,{fs:'10',c:'#FFA500',b:true});
+        rvNode(s, rc, 215,55,260,50, '#FFE066','#f0b400', 'Scientific reason','+ topic keyword');
+      })();
+      </script>
+    </div>
+
+  Use unique IDs (rv-1, rv-2 …). Diagrams are rendered inline — no placeholder needed.
+  Colours: blue(#E5F5FF/#4D96FF)=context; yellow(#FFE066/#f0b400)=keywords;
+           green(#E5FFE5/#4ECDC4)=outcomes; red(#FFE5E5/#FF6B6B)=wrong.
+  Arrows: orange(#FFA500)=BECAUSE/causal; blue(#4D96FF)=neutral flow.
+
+TYPE B — ConceptViz placeholder (master-big-picture ONLY):
+  Use ONLY for the "master-big-picture" diagram in the Master Summary tab.
+  Write STRUCTURED CONTENT (YAML-style blocks) as the text content of the div —
+  NOT a final image prompt. image_generator.py reads this content, calls a
+  prompt-shaper LLM to combine it with the visual style template, then feeds
+  the resulting prompt to nano-banana-2 to generate the PNG.
+    <div class="diagram-container">
+      <div class="conceptviz-placeholder" data-diagram-id="master-big-picture"
+           data-topic="{TOPIC}" data-level="{LEVEL}">
+[STRUCTURED CONTENT — see CONCEPTVIZ STRUCTURED CONTENT REQUIREMENTS at the end of this prompt]
+      </div>
+    </div>
+  ConceptViz uses TYPE B — not a gemini-placeholder. Mine the validated questions
+  thoroughly: every SUB_TOPIC, EXAM_KEYWORD, QA_PAIR, and CAUSAL_PAIR must come
+  from real entries in {VALIDATED_JSON}.
+
+TYPE D — complex inline SVG (when Rough.js is not enough):
+  First evaluate complexity to pick the output format:
+
+  → SVG  STRONG DEFAULT. Use for almost everything: flow/cycle diagrams, circuit diagrams,
+               process steps, property comparisons, before/after states, labeled cross-sections,
+               physical phenomena (evaporation, heat transfer, states of matter), life cycles,
+               force/energy diagrams, ecosystems shown schematically. If shapes + labels + arrows
+               can tell the story, use SVG.
+  → PNG  NARROW EXCEPTION. Only when the visual appearance of a real organism or object is
+               itself the exam content — e.g. identifying a specific animal, plant structure, or
+               mineral by sight; showing realistic texture that labels cannot replace.
+               If you can draw it with rectangles, arrows, and text, use SVG instead.
+
+TYPE D-SVG — Inline SVG diagrams (no placeholder, no external call):
+
+  PREFERRED: use Tier 1 frame helpers — the LLM emits a thin <div id> + <script>
+  block, the helper writes the full SVG. Frame helpers cover the four standard
+  diagram shapes:
+
+    dCompare(id, leftBody, rightBody, opts?) — mistakes 440×155 two-panel
+      opts: {leftLabel?, rightLabel?}  (panel-local x: left=0..220, right=0..220)
+    dDistinct(id, side, body, opts?)         — distinctions panel 220×150
+      side: 'left' (blue) | 'right' (green); opts: {title?}
+    dScene(id, body, opts?)                  — question scenario 500×280
+      opts: {title?, bg?, w?, h?}
+    dFlow(id, nodes, edges, opts?)           — concept/process flow 500×200
+      nodes: [{x,y,w,h,fill?,stroke?,label,sub?}]
+      edges: [{from,to,label?,color?}]   (from/to are node indices)
+
+  body / leftBody / rightBody / nodes are arrays of strings; each string is
+  built by concatenating sub-shape helper calls (see HELPER REFERENCE at the
+  bottom of this prompt for the available sub-shapes — dArrow, dLabel, dBox,
+  plus topic-specific shapes).
+
+  Example — mistakes comparison:
+    <div class="diagram-container">
+      <div id="dc-1"></div>
+      <script>
+      dCompare('dc-1',
+        [dThermo(40, 25, 70, 0.2) + dLabel(60, 110, 'Cold water')],
+        [dThermo(40, 25, 70, 0.85) + dLabel(60, 110, 'Hot water') + dFlame(110, 90, 24)],
+        {leftLabel:'Wrong', rightLabel:'Correct'});
+      </script>
+    </div>
+
+  Example — process flow:
+    <div class="diagram-container">
+      <div id="df-1"></div>
+      <script>
+      dFlow('df-1',
+        [{x:20,y:60,w:140,h:50,fill:'#E5F5FF',stroke:'#4D96FF',label:'Liquid water',sub:'(in puddle)'},
+         {x:200,y:60,w:140,h:50,fill:'#FFE066',stroke:'#f0b400',label:'Heat from sun'},
+         {x:380,y:60,w:100,h:50,fill:'#E5FFE5',stroke:'#4ECDC4',label:'Water vapour'}],
+        [{from:0,to:1,label:'gains'},{from:1,to:2,label:'evaporates'}]);
+      </script>
+    </div>
+
+  RAW FALLBACK: inline <svg> remains legal when no frame helper fits. Same
+  viewBox sizes (440×155 mistakes, 220×150 distinction, 500×280 scene, 500×200
+  flow) and same palette below — but expect to be rare.
+
+  Palette / construction (applies to BOTH helper and raw modes):
+    1. All labels in <text> elements, font-size 11-13, fill #2D3748
+    2. Shapes: <rect rx="6">, <circle>, <ellipse>, <path> as needed
+    3. Arrows: <line> with marker-end OR <line>+<polygon> arrowhead
+       Causal/BECAUSE arrows: stroke #FFA500. Neutral flow: stroke #4D96FF
+    4. Palette: bg #E5F5FF, blue #4D96FF, teal #4ECDC4, red #FF6B6B, yellow #FFE066
+    5. Mistakes two-panel: left bg #fff5f5 stroke #FF6B6B, right bg #f0fff8 stroke #4ECDC4
+    6. Keep it clean — max 12 labeled elements per SVG
+    Context rule: question scenario diagrams show SCENARIO ONLY — no answer keywords, no BECAUSE arrows.
+
+{TIER2_HELPER_DOCS}
+
+TYPE D-PNG — nano banana 2 (gemini-3.1-flash-image-preview), single call, realistic illustration:
+  Embed the FULL image prompt INSIDE the div:
+    <div class="gemini-placeholder"
+         data-diagram-id="[id]"
+         data-tab="[questions|mistakes|distinctions]"
+         data-context="[question|mistake|distinction]"
+         data-type="[scenario|comparison|concept]"
+         data-output="png"
+         data-model="nano-banana-2"
+         data-topic="{TOPIC}" data-level="{LEVEL}">
+[PNG PROMPT TEXT — image_generator.py sends this to nano banana 2]
+    </div>
+
+  PNG prompt format (text-to-image, Imagen-style):
+    1. Open: "Educational science diagram for Singapore {LEVEL} students."
+    2. Describe scene concretely: subjects, setting, spatial arrangement of all elements
+    3. Style: "Clean white background, professional textbook illustration, clear colors, age 11."
+    4. List labeled parts: "Label [A] = [name], [B] = [name], ..."
+    5. Close: "No decorative borders. No text except diagram labels."
+    Context rule: question scenario diagrams show SCENARIO ONLY — no answer content visible.
+
+R4. COMPLETE ALL EIGHT TABS. Never truncate. Never leave a section empty.
+
+R5. SCHOOL ATTRIBUTION ON EVERY QUESTION (Top Questions tab).
+Every rendered question must show its source school via a <span class="badge badge-school">[school]</span>
+badge in the question header.
+
+R6. DERIVE KEYWORDS, LINKING WORDS, AND CONCEPT COUNTS YOURSELF.
+You receive validated questions only. You must:
+  - Read every model_answer in {VALIDATED_JSON} (including sibling_parts) and identify the 15–20
+    most exam-relevant keywords. Frequency matters but so does subject-specific weight.
+  - Identify the linking words actually used in model_answers.
+  - For EACH Key Concept on the Overview tab, count the number of questions in the
+    FULL validated set that primarily test THAT concept.
+
+R7. NO HEADER, NO TAB-NAV, NO PROGRESS DASHBOARD.
+The shell already provides these. Your output is only the inner HTML for the eight tab bodies.
+
+=== MINIMUM CONTENT REQUIREMENTS (HARD FLOORS) ===
+
+  overview:     6–9 concept cards + 2 stat cards (centered) + schools list + oe-challenge-box
+  questions:    EXACTLY 10 question items (top 10 hardest; fewer if input provides fewer)
+  mistakes:     AT LEAST 8 mistake cards (target 10)
+  distinctions: AT LEAST 5 distinction items (target 7)
+  keywords:     AT LEAST 15 keyword cards (target 18-20)
+  traps:        AT LEAST 8 trap flip-cards (target 10)
+  formula:      ONE formula card PER question_type in summary.question_type_distribution
+                EXCEPT OTHER_OPEN_ENDED
+  summary:      EXACTLY 1 diagram placeholder: master-big-picture (ConceptViz TYPE B) only
+
+=== TAB-BY-TAB CONTENT SPECS ===
+
+--- OVERVIEW TAB ---
+<h2 class="section-title">Overview — {TOPIC}</h2>
+
+<div class="stats-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:520px;margin:18px auto">
+  <div class="stat-card"><div class="stat-number">[N]</div><div class="stat-label">Total Questions</div></div>
+  <div class="stat-card"><div class="stat-number">[N]</div><div class="stat-label">Schools Represented</div></div>
+</div>
+
+<div class="schools-card">
+  <h3>Source Schools</h3>
+  <div class="schools-grid">[one .school-pill per school, alphabetical]</div>
+</div>
+
+<h3 style="margin-top:24px;margin-bottom:8px">Key Concepts to Master</h3>
+<div class="concepts-grid">
+  [6–9 .concept-card entries (target 8 for rich topics, minimum 6).
+   Each:
+   <div class="concept-card">
+     <div class="concept-number">CONCEPT [n]</div>
+     <div class="concept-title-row">
+       <div class="concept-title">[2-4 word concept title]</div>
+       <span class="concept-count">[N] questions</span>
+     </div>
+     <div class="concept-desc">[2 sentences using vocabulary from input model_answers]</div>
+     <div class="concept-keywords">[2-3 <span class="chip chip-keyword"> spans]</div>
+   </div>]
+</div>
+
+<div class="oe-challenge-box">
+  <h4>Why Open-Ended is Harder Than MCQ</h4>
+  <p>[2-3 sentences referencing 2-3 specific keywords students must produce]</p>
+</div>
+
+NO diagrams on this tab.
+
+--- COMMON MISTAKES TAB ---
+<h2 class="section-title">Common {LEVEL} Open-Ended Writing Mistakes</h2>
+<p style="color:#666;margin-bottom:14px">[intro sentence]</p>
+<div class="nav-btns">
+  <button class="nav-btn" id="mistake-prev" onclick="navigateItem('mistake', -1)">← Previous</button>
+  <span id="mistake-counter" style="font-weight:700;color:#666"></span>
+  <button class="nav-btn" id="mistake-next" onclick="navigateItem('mistake', 1)">Next →</button>
+</div>
+
+AT LEAST 8 mistakes (target 10). Use the mCard helper — DO NOT emit raw card HTML.
+Emit ONE container then ONE <script> block calling mCard for each entry:
+
+<div id="mistakes-list"></div>
+<script>
+mCard({id:1, title:"Confusing weight and volume", marks:2,
+  wrong:"The water level rose because the stone has weight.",
+  missing:"definite volume",
+  right:"The stone has a <span class=\"keyword\" data-tip=\"...\">definite volume</span> and displaces water.",
+  keyword:"definite volume",
+  fix:"Always link displacement to volume, not weight."});
+mCard({id:2, ...});
+// 7+ more
+</script>
+
+mCard signature (from templates/script.js):
+  mCard({id, title, marks, wrong, missing, right, keyword, fix, diagram?})
+    id        — integer 1..N (drives checkbox id "mistakes-{id}-cb")
+    title     — short error name (no "Mistake N:" prefix — helper adds it)
+    marks     — total marks for this answer
+    wrong     — student-style wrong sentence (string; HTML allowed)
+    missing   — single keyword the student missed (chip-missing label)
+    right     — model sentence (HTML allowed: <span class="keyword">…</span>)
+    keyword   — single keyword to display in chip-keyword label
+    fix       — prescriptive one-sentence fix
+    diagram?  — optional pre-built HTML (e.g. inline <svg>) to slot into the card
+
+Quotes inside string values must be escaped (\" inside double-quoted strings,
+or use single-quoted strings). The helper renders the same HTML structure as
+before — same CSS classes, same checkbox tracking — just in compact form.
+
+CRITICAL — JS SYNTAX INTEGRITY (applies to ALL helper-call <script> blocks:
+mCard, dCardCompare, kCard, tCard, tsTable, ecBar/ecLine/ecPie, dFlow, dScene,
+dCompare, dDistinct, dCircuit, etc.):
+  • Every helper call MUST be a syntactically complete JavaScript statement,
+    starting with the helper name and ending with `});` followed by a newline.
+  • NO leftover fragments between calls. Examples of forbidden garbage:
+        mCard({...});
+        m, no digestion happens there."});     ← orphan text from a prior draft
+        mCard({id:5, ...});
+    or
+        });
+        ", marks:1, ...});                      ← stray closing of a deleted call
+  • If you revise a card after writing it, REWRITE THE WHOLE CALL — do not
+    paste partial replacement text into the middle of the script block.
+  • Verify before emitting: every `{` has a matching `}`, every string quote
+    closes, every helper call terminates with `});`. A single stray token
+    aborts the entire <script> block and ALL cards in that tab silently
+    fail to render.
+  • When you finish each <script> block, the count of `mCard(` (or whatever
+    helper) MUST equal the count of `});` lines that close those calls.
+
+--- CRITICAL DISTINCTIONS TAB ---
+<h2 class="section-title">Critical Distinctions for {LEVEL}</h2>
+<div class="nav-btns">
+  <button class="nav-btn" id="distinction-prev" onclick="navigateItem('distinction', -1)">← Previous</button>
+  <span id="distinction-counter" style="font-weight:700;color:#666"></span>
+  <button class="nav-btn" id="distinction-next" onclick="navigateItem('distinction', 1)">Next →</button>
+</div>
+
+AT LEAST 5 distinctions (target 7). Use the dCardCompare helper — DO NOT emit
+raw card HTML. Emit ONE container then ONE <script> block calling
+dCardCompare for each entry:
+
+<div id="distinctions-list"></div>
+<script>
+dCardCompare({id:1,
+  leftLabel:"Solid", rightLabel:"Liquid",
+  leftItems:[
+    "Has a <span class=\"keyword\">definite shape</span>.",
+    "Has a <span class=\"keyword\">definite volume</span>.",
+    "Particles are tightly packed."],
+  rightItems:[
+    "Has <span class=\"keyword\">no definite shape</span>.",
+    "Has a <span class=\"keyword\">definite volume</span>.",
+    "Takes the shape of the container."],
+  note:"\"A solid has a definite shape <span class=\"link-word\">whereas</span> a liquid takes the shape of its container.\"",
+  trap:"Both have definite volume — students forget shape is the differentiator."});
+dCardCompare({id:2, ...});
+// 3+ more
+</script>
+
+dCardCompare signature:
+  dCardCompare({id, leftLabel, rightLabel, leftItems, rightItems,
+                leftDiagram?, rightDiagram?, note?, trap?})
+    id            — integer (drives checkbox id "distinctions-{id}-cb")
+    leftLabel/rightLabel  — short concept names ("Solid" vs "Liquid")
+    leftItems     — array of strings, each rendered as <li> (HTML allowed)
+    rightItems    — array of strings, same
+    leftDiagram?  — optional inline <svg> HTML for the left side
+    rightDiagram? — optional inline <svg> HTML for the right side
+    note?         — "How to Write the Compare Answer" sentence (HTML allowed)
+    trap?         — "Why Students Confuse These" cognitive trap
+
+For Tier 1 helper choice: when both sides need a diagram, prefer dCompare
+(see TYPE D-SVG section) which produces ONE comparison svg covering BOTH
+sides at once and pass empty leftDiagram/rightDiagram. Use leftDiagram +
+rightDiagram only when the two sides need entirely different diagrams.
+
+--- KEYWORDS TAB ---
+<h2 class="section-title">Keywords to Write in Your {LEVEL} Answers</h2>
+<div class="filter-btns">
+  <button class="filter-btn active" onclick="filterKeywords('all', this)">All</button>
+  <button class="filter-btn" onclick="filterKeywords('action', this)">Action Words</button>
+  <button class="filter-btn" onclick="filterKeywords('descriptive', this)">Descriptive</button>
+  <button class="filter-btn" onclick="filterKeywords('linking', this)">Linking</button>
+  <button class="filter-btn" onclick="filterKeywords('technical', this)">Technical</button>
+</div>
+
+AT LEAST 15 keywords (target 18-20). Use the kCard helper — DO NOT emit raw
+keyword-card HTML. Emit ONE container with class="keyword-grid" then ONE
+<script> block calling kCard per keyword:
+
+<div id="keywords-list" class="keyword-grid"></div>
+<script>
+kCard({id:1, word:"occupies space", cat:"action",
+  tip:"Write this in your {LEVEL} answer — examiners look for this word",
+  freq:"Appears heavily in Matter questions",
+  usage:"\"Air <span class=\"keyword\">occupies space</span> in the glass bottle...\""});
+kCard({id:2, word:"definite shape", cat:"descriptive", ...});
+// 13+ more
+</script>
+
+kCard signature:
+  kCard({id, word, tip, cat, freq, usage})
+    id     — integer (no checkbox; for tracking only)
+    word   — the keyword/phrase
+    tip    — tooltip text shown on hover (one short sentence)
+    cat    — one of: action | descriptive | linking | technical
+             (drives data-category for filterKeywords AND badge class)
+    freq   — short frequency-flavoured description (e.g. "Appears heavily…")
+    usage  — VERBATIM excerpt from a model_answer (HTML allowed for keyword spans)
+
+<div class="link-word-box"><h4>Linking Words</h4>...</div>
+
+--- WRONG ANSWERS / TRAPS TAB ---
+<h2 class="section-title">Wrong Written Answers — {LEVEL} Traps</h2>
+<div class="nav-btns">
+  <button class="nav-btn" id="trap-prev" onclick="navigateItem('trap', -1)">← Previous</button>
+  <span id="trap-counter" style="font-weight:700;color:#666"></span>
+  <button class="nav-btn" id="trap-next" onclick="navigateItem('trap', 1)">Next →</button>
+</div>
+
+AT LEAST 8 traps (target 10). Use the tCard helper — DO NOT emit raw flip-card
+HTML. Emit ONE container then ONE <script> block calling tCard per trap:
+
+<div id="traps-list"></div>
+<script>
+tCard({id:1, trap:"Shadows are matter.",
+  description:"Students assume shadows are matter because they can be seen and appear to take up physical shape on the ground.",
+  truth:"A shadow is not <span class=\"keyword\">matter</span> because it has no <span class=\"keyword\">mass</span> and does not <span class=\"keyword\">occupy space</span>.",
+  whyMatters:"Use strict definitions: visibility is not a property of matter."});
+tCard({id:2, ...});
+// 7+ more
+</script>
+
+tCard signature:
+  tCard({id, trap, description, truth, whyMatters})
+    id          — integer (helper prefixes "Trap N: " automatically)
+    trap        — wrong-belief headline (no "Trap N:" prefix)
+    description — 1-2 sentence description of the misconception
+    truth       — 1-2 sentence corrective statement (HTML allowed:
+                  <span class="keyword">word</span>)
+    whyMatters  — one-line "why this matters in an exam answer"
+
+The flip behaviour is wired by the delegated click handler in script.js;
+no onclick attribute is needed on individual cards.
+
+--- ANSWER FORMULA TAB ---
+ONE .formula-card per question_type in summary (except OTHER_OPEN_ENDED).
+
+For EACH formula card, use a Rough.js sketch (TYPE A3) — formula flowcharts are ideal for it.
+Use these coordinate skeletons (viewBox="0 0 500 160" for 2-node; "0 0 680 160" for 3-node):
+
+  EXPLAIN (2 nodes, viewBox 500×160):
+    Node A (blue,  x=20,  y=55, w=145, h=50): "Observation"    sub: "(what you see/measure)"
+    Arrow  (x1=165, y1=80 → x2=215, y2=80, orange): label "BECAUSE"
+    Node B (yellow, x=215, y=55, w=265, h=50): "Scientific reason"  sub: "+ topic keyword"
+
+  COMPARE (2 nodes, viewBox 500×160):
+    Node A (blue,  x=20,  y=55, w=185, h=50): "Concept A: keyword A"
+    Arrow  (x1=205, y1=80 → x2=255, y2=80, orange): label "WHILE / WHEREAS"
+    Node B (green, x=255, y=55, w=225, h=50): "Concept B: keyword B"
+
+  DESCRIBE (3 nodes, viewBox 680×160):
+    Node A (blue,  x=10,  y=55, w=160, h=50): "Step 1 + keyword"
+    Arrow (→ THEN)
+    Node B (yellow, x=210, y=55, w=160, h=50): "Step 2 + keyword"
+    Arrow (→ THEN)
+    Node C (green, x=410, y=55, w=260, h=50): "Consequence / Result"
+
+  STATE (1 node, viewBox 500×160):
+    Node A (blue,  x=20, y=55, w=195, h=50): "Question stem"
+    Arrow (x1=215, y1=80 → x2=265, y2=80): label "Answer:"
+    Node B (yellow, x=265, y=55, w=215, h=50): "Single keyword fact"
+
+  SUGGEST (2 nodes, viewBox 500×160):
+    Node A (blue, x=20, y=55, w=180, h=50): "Suggestion (action)"
+    Arrow (→ BECAUSE)
+    Node B (green, x=250, y=55, w=230, h=50): "Keyword scientific reason"
+
+  PREDICT (2 nodes, viewBox 500×160):
+    Node A (blue, x=20, y=55, w=195, h=50): "Predicted observation"
+    Arrow (→ BECAUSE)
+    Node B (yellow, x=265, y=55, w=215, h=50): "Keyword reason"
+
+  GIVE_REASON (2 nodes, viewBox 500×160):
+    Node A (yellow, x=20, y=55, w=195, h=50): "Keyword reason"
+    Arrow (→ THEREFORE)
+    Node B (green, x=265, y=55, w=215, h=50): "Consequence / outcome"
+
+Each formula card:
+<div class="formula-card">
+  <h3><span class="badge badge-[type]">[TYPE]</span> [label]</h3>
+  <p style="color:#666;font-size:13px;margin-bottom:12px">[when this type appears]</p>
+  <div class="formula-display">[text skeleton]</div>
+  <div class="diagram-container">
+    <svg id="rv-f[n]" viewBox="0 0 500 160" width="100%"
+         class="roughviz-svg" style="max-height:180px"></svg>
+    <script>
+    (function(){
+      const s = document.getElementById('rv-f[n]');
+      const r = rough.svg(s);
+      // Use global helpers: rvNode(s,rc,x,y,w,h,fill,stroke,label,sub)
+      //                     rvt(s,txt,x,y,opts)   rvah(s,x,y,dir,color)
+      // [draw nodes and arrows using skeleton above]
+      // Example: rvNode(s,r,20,55,145,50,'#E5F5FF','#4D96FF','Observation','(what you see)');
+      //          s.appendChild(r.line(165,80,215,80,{stroke:'#FFA500',strokeWidth:2,roughness:1}));
+      //          rvah(s,216,80,'r','#FFA500'); rvt(s,'BECAUSE',193,73,{fs:'10',c:'#FFA500',b:true});
+      //          rvNode(s,r,215,55,260,50,'#FFE066','#f0b400','Scientific reason','+ topic keyword');
+    })();
+    </script>
+  </div>
+  <div class="mark-breakdown"><h4>Real Example from a {LEVEL} Model Answer:</h4>
+    <div class="answer-correct-example">[VERBATIM model_answer with spans]</div>
+  </div>
+  <div style="margin-top:12px"><strong style="color:#FF6B6B;font-size:13px">What to AVOID:</strong>
+    <div style="margin-top:6px">[3-4 .avoid-item entries]</div>
+  </div>
+</div>
+
+End with:
+<div class="universal-checklist">
+  <h4>Universal Open-Ended Answer Checklist</h4>
+  [6-7 .u-check-item entries]
+</div>
+
+--- MASTER SUMMARY TAB ---
+<h2 class="section-title">Master Summary — {TOPIC}</h2>
+
+<div class="summary-diagram-section">
+  <div class="summary-diagram-label">Core Concept Overview</div>
+  <div class="diagram-container">
+    <div class="conceptviz-placeholder" data-diagram-id="master-big-picture"
+         data-topic="{TOPIC}" data-level="{LEVEL}">
+    </div>
+  </div>
+  <div class="diagram-caption">Tap image to view full screen · All key concepts at a glance</div>
+</div>
+
+NOTE: Only 1 diagram in Master Summary (ConceptViz master-big-picture). No second section, no divider, no checklist.
+
+{CONCEPTVIZ_REQUIREMENTS}
+
+{AVAILABLE_CLASSES}
+
+=== PRE-EMIT SELF-CHECK (MANDATORY) ===
+Before writing the final JSON, verify:
+
+  [ ] overview:        6–9 concept-card entries + 2 stat cards (centered, no Most Common Type, no Question Type Distribution block)?
+  [ ] questions:       10 question-item entries?
+  [ ] mistakes:        ≥8 mistake-item entries?
+  [ ] distinctions:    ≥5 distinction-item entries (target 7)?
+  [ ] keywords:        ≥15 keyword-card entries?
+  [ ] traps:           ≥8 trap-item entries with correct flip-card structure?
+  [ ] formula:         one formula-card per non-OTHER type in summary?
+  [ ] summary:         exactly 1 conceptviz-placeholder (TYPE B) with full prompt inside? No second section?
+  [ ] every TYPE D-SVG is a real inline <svg> inside a diagram-container div (no placeholder)?
+  [ ] every TYPE D-PNG placeholder has data-output="png", data-model="nano-banana-2", and PNG prompt inside?
+  [ ] no bare SVG outside a diagram-container div? no <img> for external URLs? no <canvas> directly? no <div class="mermaid">?
+  [ ] formula tab uses global rvt/rvah/rvNode — no inline redefinitions of t() or ah()?
+  [ ] all Rough.js svg IDs unique? all ECharts div IDs unique? all tsTable div IDs unique?
+  [ ] mistakes tab uses ONLY mCard() calls (no raw .mistake-item HTML)?
+  [ ] distinctions tab uses ONLY dCardCompare() calls (no raw .distinction-item HTML)?
+  [ ] keywords tab uses ONLY kCard() calls (no raw .keyword-card HTML)?
+  [ ] traps tab uses ONLY tCard() calls (no raw .trap-item HTML)?
+  [ ] each card-helper script block is preceded by its container div
+      (#mistakes-list, #distinctions-list, #keywords-list, #traps-list)?
+  [ ] all string values inside helper-call object literals have escaped inner
+      quotes (\" inside double-quoted strings) and balanced HTML tags?
+  [ ] every helper-call <script> block is syntactically clean: NO orphan
+      fragments between calls, NO stray text like `m, ...");` left over from a
+      revised draft, count of `mCard(` (etc.) equals count of `});` closers?
+  [ ] TYPE D-SVG: dCompare/dDistinct/dScene/dFlow used where the diagram fits
+      a standard pattern? Raw <svg> only for genuinely custom cases?
+  [ ] TYPE A2: ecBar/ecLine/ecPie used where defaults suffice? Raw
+      echarts.init only for unusual layouts?
+
+=== FINAL OUTPUT RULE ===
+Return ONLY the JSON object with the eight keys above. No markdown fences, no prose, no explanation.
+All HTML values must have balanced tags.
+
+=== TIER 2 SUB-SHAPE REFERENCE — domain-gated, selective injection ===
+The blocks below are filtered by pipeline.py based on the topic's keywords.
+Only the relevant domain sections appear at runtime; the raw <svg> fallback is
+always available, and dArrow/dLabel/dBox/dDashedLine ship in every run.
+
+<!--HELPER:water_heat_matter-->
+WATER / HEAT / MATTER sub-shapes — return SVG fragment strings.
+
+  dSun(cx, cy, r=14)                       — yellow disc + 8 orange rays
+  dFlame(cx, by, h=26)                     — orange flame above (cx, by-h..by)
+  dBeaker(x, y, w, h, opts?)               — opts: {liquid:0..1, color}
+  dPuddle(cx, cy, rx=28, ry=7)             — flat blue ellipse
+  dDroplet(cx, cy, r=6)                    — teardrop pointing down
+  dCloud(cx, cy, w=50)                     — three-bump cloud
+  dThermo(x, y, h=60, fill=0.5)            — vertical thermometer, fill 0..1
+  dContainer(x, y, w, h, opts?)            — opts: {fill, lid:bool}
+  dParticleGrid(x, y, w, h, state)         — state: 'solid'|'liquid'|'gas'
+  dKettle(x, y, w, h, opts?)               — opts: {color, steam:bool}
+  dPlate(x, y, w, h, opts?)                — opts: {color}
+  dCylinder(x, y, w, h, opts?)             — measuring cylinder, opts: {liquid:0..1, color}
+  dRays(cx, cy, r, n=6)                    — short outward strokes (heat/light)
+  dCup(x, y, w, h, opts?)                  — straight-walled glass; opts: {water:0..1, color, condensation:bool, label}
+  dFunnel(cx, by, w=30, h=26, opts?)       — inverted trapezoid + neck stem; (cx, by) = stem bottom-tip
+  dBalance(cx, cy, w=60, opts?)            — beam balance; opts: {tilt:-1..1}
+  dIceCube(x, y, w=24, h=24)               — rounded blue-white ice block with diagonal highlight
+  dBottle(x, y, w, h, opts?)               — body + neck + cap; opts: {water:0..1, color, cap}
+  dTray(x, y, w, h, opts?)                 — flat metal tray (parallelogram); opts: {fill}
+  dMist(cx, cy, w=60, h=30)                — cluster of small light-blue droplet circles (fog/mist)
+  dSpring(x, y, w, h, opts?)               — horizontal coil zig-zag; opts: {coils:int, color}
+
+Worked example — kettle on stove:
+  dScene('ds-1',
+    [dKettle(180, 130, 140, 80, {steam:true}) +
+     dFlame(220, 215, 18) + dFlame(250, 215, 22) + dFlame(280, 215, 18) +
+     dLabel(250, 250, 'Heat from flame', {b:true})]);
+
+Worked example — condensation on cold glass (uses dCup + dDroplet):
+  dScene('ds-2',
+    [dCup(220, 60, 60, 160, {water:0.7, condensation:true, label:'Cold drink'}) +
+     dDroplet(214, 100) + dDroplet(214, 140) + dDroplet(286, 120) + dDroplet(286, 170) +
+     dLabel(180, 250, 'Water vapour from air', {b:true}) +
+     dArrow(180, 240, 220, 130, '#4D96FF')]);
+<!--/HELPER:water_heat_matter-->
+
+<!--HELPER:biology-->
+BIOLOGY sub-shapes — return SVG fragment strings.
+
+  dPlant(x, y, h=60, opts?)                — root + stem + leaves; opts: {flower, leaf, stem (colors)}
+  dFlower(cx, cy, r=7, opts?)              — 5 petals + center; opts: {color}
+  dLeaf(cx, cy, w=14, h=7, opts?)          — opts: {rot (degrees), color}
+  dAnimal(x, y, kind)                      — kind: 'fish'|'bird'|'mammal'|'insect'
+  dOrgan(x, y, kind)                       — kind: 'heart'|'lung'|'stomach'|'kidney'
+  dSeed(cx, cy, r=5)                       — brown ellipse
+  dRoot(x, y, h=20, opts?)                 — branching root from (x, y) downwards
+
+Worked example — life cycle of a plant:
+  dFlow('df-2',
+    [{x:20, y:70, w:100, h:50, fill:'#FFF8E5', stroke:'#F39C12', label:'Seed'},
+     {x:160, y:70, w:100, h:50, fill:'#E5F5FF', stroke:'#4D96FF', label:'Seedling'},
+     {x:300, y:70, w:100, h:50, fill:'#E5FFE5', stroke:'#2ECC71', label:'Mature plant'}],
+    [{from:0,to:1,label:'germinates'},{from:1,to:2,label:'grows'}]);
+<!--/HELPER:biology-->
+
+<!--HELPER:electricity-->
+ELECTRICITY sub-shapes — return SVG fragment strings; OR use the dCircuit
+frame helper directly (writes a complete 500×200 circuit canvas).
+
+  dBattery(x, y, w=36, h=16)               — yellow cell with + / − terminals
+  dBulb(cx, cy, r=12, opts?)               — opts: {lit:bool}; lit shows rays
+  dSwitch(x, y, w=28, opts?)               — opts: {open:bool}
+  dWire(x1, y1, x2, y2, opts?)             — opts: {color, sw}
+  dCircuit(id, components, wires, opts?)   — frame: full 500×200 canvas
+    components/wires are arrays of helper-call strings
+    opts: {w, h, bg}
+
+Worked example — simple circuit:
+  dCircuit('dc-2',
+    [dBattery(40, 80), dBulb(250, 90, 14, {lit:true}), dSwitch(380, 90)],
+    [dWire(76, 88, 240, 88), dWire(264, 88, 380, 88), dWire(408, 88, 470, 88),
+     dWire(470, 88, 470, 150), dWire(470, 150, 40, 150), dWire(40, 150, 40, 96)]);
+<!--/HELPER:electricity-->
+

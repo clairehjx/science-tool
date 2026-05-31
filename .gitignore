@@ -1,0 +1,25 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ── Secrets (keys come from the global environment, never a file) ──
+.env
+*.env
+
+# ── Private exam papers (live in the separate private 'science-banks' repo) ──
+banks/
+syllabus.pdf
+
+# ── Generated output (the finished cheat sheets live in the 'science-cheatsheets' repo) ──
+output/
+conceptviz/
+processed.json
+processed_mcq.json
+
+# ── OS / editor junk ────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
