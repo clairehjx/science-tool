@@ -62,8 +62,8 @@ FALLBACK_CHAINS: dict[ModelClass, list[str]] = {
 
 # Per-class reasoning depth (gemini-3.5-flash = "3.5 Flash"). PRO does the
 # deep reasoning work (HTML generation, complex pedagogy) at thinking=high;
-# FLASH_LITE runs cheap high-volume validation at thinking=minimal; plain FLASH
-# uses the model default (no thinking_config).
+# FLASH_LITE runs cheap high-volume bulk work (data-cleaning / boilerplate) at
+# thinking=minimal; plain FLASH uses the model default (no thinking_config).
 CLASS_THINKING: dict[ModelClass, str] = {
     ModelClass.PRO:        "high",
     ModelClass.FLASH_LITE: "minimal",

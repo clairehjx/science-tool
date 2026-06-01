@@ -18,9 +18,9 @@ from google.genai import types
 # Tunable constants
 # ---------------------------------------------------------------------------
 BROAD_THRESHOLD = 0.25             # wide-net semantic threshold; lower to 0.20 if <5 matches
-VALIDATION_MODEL = "gemini-3.5-flash"        # "3.5 Flash"; run at thinking=minimal (cheap validation)
-VALIDATION_FALLBACK = "gemini-3-flash-preview"  # used when VALIDATION_MODEL returns 503
-VALIDATION_THINKING = "minimal"
+VALIDATION_MODEL = "gemini-3.5-flash"        # "3.5 Flash"; run at thinking=medium — one batched call per
+VALIDATION_FALLBACK = "gemini-3-flash-preview"  # topic that can drop questions / rewrite answers, so it
+VALIDATION_THINKING = "medium"               # earns careful judgement (fallback used on 503)
 HTML_MODEL = "gemini-3.5-flash"              # "3.5 Flash"; run at thinking=high (tab-content JSON generation)
 HTML_FALLBACK = "gemini-3-flash-preview"        # used when HTML_MODEL returns 503
 HTML_THINKING = "high"

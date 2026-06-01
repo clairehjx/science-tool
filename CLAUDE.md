@@ -116,14 +116,14 @@ Default cost: 2 calls (`--variants N` for N alternates). Swap variant by copying
 
 | Step | Model |
 |---|---|
-| OE PDF extraction (`pdf_extractor.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`) |
-| Validation (`pipeline.VALIDATION_MODEL`) | `gemini-3.5-flash` thinking-minimal (fallback `gemini-3-flash-preview`) |
+| OE PDF extraction (`pdf_extractor.py`) | `gemini-3.5-flash` thinking-medium (fallback `gemini-3-flash-preview`) |
+| Validation (`pipeline.VALIDATION_MODEL`) | `gemini-3.5-flash` thinking-medium (fallback `gemini-3-flash-preview`) |
 | HTML generation | `gemini-3.5-flash` thinking-high (fallback `gemini-3-flash-preview`) |
 | ConceptViz prompt-shaper | `gemini-3.5-flash` (thinking-medium) |
 | Diagram PNG / ConceptViz image | `gemini-3.1-flash-image-preview` (nano-banana-2) |
 | OE-quiz bbox detection (`oe_quiz_generator.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`, vision) |
 
-**`gemini-3.5-flash`** = "3.5 Flash" — current primary for all text/vision work; fallback `gemini-3-flash-preview` = "3 Flash". Validation runs it at thinking-minimal, HTML generation at thinking-high, plain Flash work at the model default. **Do NOT use:** gemini-2.x / gemini-3.1-pro-preview (superseded).
+**`gemini-3.5-flash`** = "3.5 Flash" — current primary for all text/vision work; fallback `gemini-3-flash-preview` = "3 Flash". PDF extraction and validation run at thinking-medium, HTML generation at thinking-high. **Do NOT use:** gemini-2.x / gemini-3.1-pro-preview (superseded).
 
 ### Delegation bridge — `.agents/gemini_bridge.py`
 
@@ -274,8 +274,8 @@ python .agents/gemini_bridge.py --class flash-lite --prompt "Summarise: …"
 User runs the scripts; iterate on prompts/templates between runs.
 
 ---
-*Last refreshed: 2026-06-01 — Models upgraded to gemini-3.5-flash (validation
-thinking-minimal, HTML thinking-high). MCQ track removed (mcq_extractor.py,
+*Last refreshed: 2026-06-01 — Models upgraded to gemini-3.5-flash (PDF extraction
+& validation thinking-medium, HTML thinking-high). MCQ track removed (mcq_extractor.py,
 quiz_generator.py + their prompts) — repo is now OE-only: cheat sheets +
 open-ended quiz. Top Questions tab is Python-injected from
 `top_questions_{slug}_{level}.json`; HTML LLM produces 7 tabs.*

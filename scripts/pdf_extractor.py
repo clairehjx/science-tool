@@ -26,6 +26,9 @@ SYLLABUS_TOPICS_FILE = ROOT / "syllabus_topics.json"
 
 GEMINI_EXTRACTION_MODEL = "gemini-3.5-flash"
 GEMINI_EXTRACTION_FALLBACK = "gemini-3-flash-preview"
+# Pinned explicitly (3.5 Flash's default is already medium): enough thinking to
+# group multi-part questions correctly, without over-thinking verbatim copying.
+EXTRACTION_THINKING = "medium"
 
 # Set after genai.Client() is created in main()
 client: genai.Client | None = None
@@ -198,7 +201,12 @@ def extract_questions_from_pdf(pdf_path: Path, school: str, year: int, level: st
         raise RuntimeError(f"Timed out waiting for Gemini to process {pdf_path.name}")
 
     def _call(model: str):
-        return client.models.generate_content(model=model, contents=[uploaded, prompt])
+        return client.models.generate_content(
+            model=model, contents=[uploaded, prompt],
+            config=types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(thinking_level=EXTRACTION_THINKING)
+            ),
+        )
 
     print(f"  [{pdf_path.name}] Calling {GEMINI_EXTRACTION_MODEL}…")
     response = None
