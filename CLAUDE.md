@@ -1,13 +1,13 @@
 # Singapore P4/P5 Science Cheat Sheet Pipeline
 
-Two parallel pipelines from the same PDFs. P4 = age 10, P5/PSLE = age 11.
+Open-ended pipeline from exam PDFs. P4 = age 10, P5/PSLE = age 11.
 
-- **OE pipeline** — Booklet B open-ended questions → 8-tab cheat sheet HTML
-- **MCQ pipeline** — Booklet A MCQs → quiz + answer-key HTML pair
+- **OE pipeline** — Booklet B open-ended questions → 8-tab cheat sheet HTML,
+  plus a printable open-ended quiz (questions + answer-key) pair.
 
-## ARCHITECTURE — TWO TRACKS
+## ARCHITECTURE
 
-### Open-ended track
+### Cheat-sheet build
 
 ```
 pdf_extractor.py --bank [p4|p5]   [--only PATTERN] [--force]
@@ -50,30 +50,9 @@ image_generator.py --topic "X" --bank [p4|p5]   [--tab ...] [--only ID] [--varia
 TYPE D-SVG diagrams are inlined by the HTML LLM via the helper DSL (see below).
 image_generator only handles ConceptViz + rare D-PNG placeholders.
 
-### MCQ track (Booklet A → printable quizzes)
+### Open-ended quiz (printable)
 
 ```
-mcq_extractor.py --bank [p4|p5]   [--only PATTERN] [--force]
-  └── 1 Gemini call per new PDF → output/json/[bank]/_mcq/School_..._Nmcqs.json
-      Merges into banks/[bank]/master_mcq.jsonl
-      Tracks processed PDFs in processed_mcq.json (mirrors processed.json for OE).
-      Each MCQ now ships with `page_number` AND `bbox{top_y_norm, bottom_y_norm}`
-      so quiz_generator.py can crop without a second vision call.
-
-quiz_generator.py --bank [p4|p5] --topics "X" "Y" …  [--count 10]
-                                  [--threshold N] [--dpi 200]
-                                  [--force-screenshots] [--force-validation]
-  ├── Reuses pipeline.py helpers (broad_python_filter, VALIDATION_MODEL/FALLBACK)
-  ├── 1 Gemini call: validation per topic       → output/validated_mcq/validated_{slug}_{level}.json
-  ├── Score difficulty (MCQ branch) → pick top N hardest, sort easiest→hardest
-  ├── Crop resolution order — first hit wins:
-  │     1. extraction-time bbox (no API call)
-  │     2. PyMuPDF text search (fast, when text layer is present)
-  │     3. cached vision (output/quizzes/bbox_cache.json) → live vision call
-  └── Emits two HTML files (questions + answer key) named after the topic combo:
-      output/quizzes/quiz_{slug_combo}.html
-      output/quizzes/answers_{slug_combo}.html
-
 oe_quiz_generator.py --bank [p4|p5] --topics "X" "Y" …
                                      [--count 5] [--similarity 0.75] [--dpi 200]
                                      [--force-screenshots] [--force-bbox]
@@ -84,7 +63,7 @@ oe_quiz_generator.py --bank [p4|p5] --topics "X" "Y" …
   └── Emits oe_quiz_{slug}.html + oe_answers_{slug}.html (hardest first).
 ```
 
-MCQ track shares helpers (`pipeline.py` imports) but writes independent outputs.
+The OE quiz reuses `pipeline.py` helpers but writes independent outputs.
 
 ## HELPER DSL (templates/script.js, ~45 helpers)
 
@@ -133,13 +112,12 @@ Default cost: 2 calls (`--variants N` for N alternates). Swap variant by copying
 - image_generator.py: **2 calls** (1 ConceptViz shaper + 1 nano-banana-2)
 - Re-runs / cached: **0 calls**
 
-## MODELS (constants atop pipeline.py / image_generator.py / mcq_extractor.py)
+## MODELS (constants atop pipeline.py / image_generator.py)
 
 | Step | Model |
 |---|---|
 | OE PDF extraction (`pdf_extractor.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`) |
-| MCQ PDF extraction (`mcq_extractor.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`) |
-| Validation (OE + MCQ — shared via `pipeline.VALIDATION_MODEL`) | `gemini-3.5-flash` thinking-minimal (fallback `gemini-3-flash-preview`) |
+| Validation (`pipeline.VALIDATION_MODEL`) | `gemini-3.5-flash` thinking-minimal (fallback `gemini-3-flash-preview`) |
 | HTML generation | `gemini-3.5-flash` thinking-high (fallback `gemini-3-flash-preview`) |
 | ConceptViz prompt-shaper | `gemini-3.5-flash` (thinking-medium) |
 | Diagram PNG / ConceptViz image | `gemini-3.1-flash-image-preview` (nano-banana-2) |
@@ -156,30 +134,26 @@ Centralised entry for new bulk work (Orchestrator Mandate). Existing scripts use
 ```
 science_cheatsheet/
 ├── CLAUDE.md · SETUP.html · requirements.txt   (API key via env var, not .env)
-├── processed.json · processed_mcq.json     extractor state (OE / MCQ)
+├── processed.json                          extractor state
 ├── .agents/gemini_bridge.py                Delegation bridge (Orchestrator Mandate)
 ├── banks/[p4|p5]/
 │   ├── papers/                             PDFs (Year-Level-…-{School}.pdf)
-│   ├── master_questions.jsonl              OE  (one line per school)
-│   └── master_mcq.jsonl                    MCQ (one line per school)
+│   └── master_questions.jsonl              OE questions (one line per school)
 ├── conceptviz/{slug}_{level}.png           canonical + _v{1..N} variants
-├── output/json/[p4|p5]/[ · _mcq/]          raw extraction JSONs
+├── output/json/[p4|p5]/                    raw extraction JSONs
 ├── output/validated/
 │   ├── validated_{slug}_{level}.json       full validated set
 │   └── top_questions_{slug}_{level}.json   top-10 picks (Top Questions tab + OE quiz)
-├── output/validated_mcq/validated_{slug}_{level}.json
 ├── output/conceptviz_prompts/{slug}_{level}.txt
 ├── output/html/
 │   ├── cheatsheet_{slug}_{level}.html      OE study guides
 │   └── screenshots → ../quizzes/screenshots  symlink for image URLs
 ├── output/quizzes/
-│   ├── quiz_/answers_{slug_combo}.html     MCQ printable quiz
 │   ├── oe_quiz_/oe_answers_{slug}.html     OE printable quiz
-│   ├── screenshots/{bank}/{school}/[q|oe_q]{N}.png
-│   └── [oe_]bbox_cache.json                vision bbox caches
+│   ├── screenshots/{bank}/{school}/oe_q{N}.png
+│   └── oe_bbox_cache.json                  vision bbox cache
 ├── prompts/
-│   ├── extraction_prompt.txt · mcq_extraction_prompt.txt
-│   ├── validation_prompt.txt · mcq_validation_prompt.txt
+│   ├── extraction_prompt.txt · validation_prompt.txt
 │   ├── generation_prompt.txt               (Tier-2 fences at bottom)
 │   └── iterate_tier2_helpers.txt           two-pass copy-paste retrofit prompt
 ├── templates/
@@ -187,8 +161,8 @@ science_cheatsheet/
 │   ├── available_classes.txt · conceptviz_requirements.txt (LLM-injected)
 │   └── conceptviz_image_style.txt          (image_generator-injected)
 └── scripts/
-    ├── pdf_extractor.py · pipeline.py · image_generator.py    OE track
-    ├── mcq_extractor.py · quiz_generator.py · oe_quiz_generator.py
+    ├── pdf_extractor.py · pipeline.py · image_generator.py
+    ├── oe_quiz_generator.py
     └── top_questions_images.py             Top Questions post-processor
                                             (auto-run by pipeline.py)
 ```
@@ -265,9 +239,7 @@ python scripts/pipeline.py --topic "Heat" --bank p5 --threshold 0.20    # loosen
 python scripts/pipeline.py --topic "Cycles" --bank p5 --wide-theme      # one HTML per sub-topic
 python scripts/image_generator.py --topic "Heat" --bank p4 --variants 5 # ConceptViz + rare D-PNGs
 
-# MCQ + quiz tracks ------------------------------------------------------
-python scripts/mcq_extractor.py --bank p4
-python scripts/quiz_generator.py    --bank p4 --topics "Heat" --count 15
+# OE quiz ----------------------------------------------------------------
 python scripts/oe_quiz_generator.py --bank p4 --topics "Heat" --count 5 --similarity 0.75
 
 # Top Questions post-process (auto-runs inside pipeline.py; standalone form
@@ -275,7 +247,7 @@ python scripts/oe_quiz_generator.py --bank p4 --topics "Heat" --count 5 --simila
 python scripts/top_questions_images.py --bank p4 --topics ALL
 
 # Re-extract ONE PDF after a prompt change
-python scripts/pdf_extractor.py --bank p4 --only "ACS" --force          # mirror flag on mcq_extractor.py
+python scripts/pdf_extractor.py --bank p4 --only "ACS" --force
 
 # Delegation bridge
 python .agents/gemini_bridge.py --class flash-lite --prompt "Summarise: …"
@@ -294,17 +266,16 @@ python .agents/gemini_bridge.py --class flash-lite --prompt "Summarise: …"
 | ConceptViz content (what LLM should mine) | `templates/conceptviz_requirements.txt` |
 | ConceptViz visual style | `templates/conceptviz_image_style.txt` |
 | New CSS classes | `templates/styles.css` AND `templates/available_classes.txt` |
-| MCQ extraction wrong fields / format | `prompts/mcq_extraction_prompt.txt` |
-| MCQ validation too loose / strict | `prompts/mcq_validation_prompt.txt` |
 | Quiz crop misses parts of a question | delete the entry in `output/quizzes/oe_bbox_cache.json` + the bad PNG; rerun the post-processor with `--force-bbox` |
 | Top Questions tab card layout / styling | `TOP_Q_STYLE` / `render_question_item` in `scripts/top_questions_images.py` |
-| Extraction-time bbox is loose / cuts off | tighten BBOX RULES in `prompts/extraction_prompt.txt` (OE) or `prompts/mcq_extraction_prompt.txt`; re-extract with `--force --only PATTERN` |
+| Extraction-time bbox is loose / cuts off | tighten BBOX RULES in `prompts/extraction_prompt.txt`; re-extract with `--force --only PATTERN` |
 | Bridge model registry stale | `FALLBACK_CHAINS` in `.agents/gemini_bridge.py` (sync with MODELS table) |
 
 User runs the scripts; iterate on prompts/templates between runs.
 
 ---
-*Last refreshed: 2026-05-10 — Top Questions tab is now Python-injected from
-`top_questions_{slug}_{level}.json` (cropped PDF images + per-sub-part flip
-buttons). HTML LLM produces 7 tabs instead of 8, saving ~6.5K tokens/topic.
-oe_quiz_generator and top_questions_images both read from the picks JSON.*
+*Last refreshed: 2026-06-01 — Models upgraded to gemini-3.5-flash (validation
+thinking-minimal, HTML thinking-high). MCQ track removed (mcq_extractor.py,
+quiz_generator.py + their prompts) — repo is now OE-only: cheat sheets +
+open-ended quiz. Top Questions tab is Python-injected from
+`top_questions_{slug}_{level}.json`; HTML LLM produces 7 tabs.*
