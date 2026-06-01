@@ -54,10 +54,19 @@ class ModelClass(str, Enum):
 # on 503 / quota / explicit retryable errors. Match the constants already in
 # pipeline.py / image_generator.py so the bridge stays in sync with CLAUDE.md.
 FALLBACK_CHAINS: dict[ModelClass, list[str]] = {
-    ModelClass.PRO:         ["gemini-3.1-pro-preview", "gemini-2.5-pro"],
-    ModelClass.FLASH:       ["gemini-3-flash-preview", "gemini-2.5-flash"],
-    ModelClass.FLASH_LITE:  ["gemini-3.1-flash-lite-preview", "gemini-2.5-flash-lite"],
+    ModelClass.PRO:         ["gemini-3.5-flash", "gemini-3-flash-preview"],
+    ModelClass.FLASH:       ["gemini-3.5-flash", "gemini-3-flash-preview"],
+    ModelClass.FLASH_LITE:  ["gemini-3.5-flash", "gemini-3-flash-preview"],
     ModelClass.NANO_BANANA: ["gemini-3.1-flash-image-preview"],
+}
+
+# Per-class reasoning depth (gemini-3.5-flash = "3.5 Flash"). PRO does the
+# deep reasoning work (HTML generation, complex pedagogy) at thinking=high;
+# FLASH_LITE runs cheap high-volume validation at thinking=minimal; plain FLASH
+# uses the model default (no thinking_config).
+CLASS_THINKING: dict[ModelClass, str] = {
+    ModelClass.PRO:        "high",
+    ModelClass.FLASH_LITE: "minimal",
 }
 
 RETRYABLE_SUBSTRINGS = ("503", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "overloaded", "quota")
@@ -127,6 +136,11 @@ def call(
         config_kwargs["temperature"] = temperature
     if thinking_budget is not None:
         config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=thinking_budget)
+    else:
+        thinking = CLASS_THINKING.get(model_class)
+        if thinking:
+            # google-genai accepts the level as a raw string ("minimal".."high").
+            config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level=thinking)
 
     attempts: list[tuple[str, str]] = []
     last_err: Exception | None = None

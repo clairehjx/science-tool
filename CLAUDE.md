@@ -118,8 +118,8 @@ audit of existing helpers (separate `=== RETROFITS ===` patch).
 
 | Stage | Script | Model | Output |
 |---|---|---|---|
-| 1. Content extraction | pipeline.py | gemini-3.1-pro | YAML in conceptviz-placeholder div + `output/conceptviz_prompts/{slug}_{level}.txt` |
-| 2. Prompt shaping | image_generator.py | gemini-3-flash thinking-medium | JSON array of N variant prompts |
+| 1. Content extraction | pipeline.py | gemini-3.5-flash thinking-high | YAML in conceptviz-placeholder div + `output/conceptviz_prompts/{slug}_{level}.txt` |
+| 2. Prompt shaping | image_generator.py | gemini-3.5-flash thinking-medium | JSON array of N variant prompts |
 | 3. Image rendering | image_generator.py | nano-banana-2 | `conceptviz/{slug}_{level}_v{1..N}.png` + `.prompt.txt` sidecar; v1 → canonical `{slug}_{level}.png` |
 
 Default cost: 2 calls (`--variants N` for N alternates). Swap variant by copying the chosen v{N} over the canonical PNG, then re-run image_generator (detects canonical, no API calls).
@@ -137,15 +137,15 @@ Default cost: 2 calls (`--variants N` for N alternates). Swap variant by copying
 
 | Step | Model |
 |---|---|
-| OE PDF extraction (`pdf_extractor.py`) | `gemini-3-flash-preview` |
-| MCQ PDF extraction (`mcq_extractor.py`) | `gemini-3-flash-preview` (fallback `gemini-2.5-flash`) |
-| Validation (OE + MCQ — shared via `pipeline.VALIDATION_MODEL`) | `gemini-3.1-flash-lite-preview` (fallback `gemini-2.5-flash-lite`) |
-| HTML generation | `gemini-3.1-pro-preview` (fallback `gemini-2.5-pro`) |
-| ConceptViz prompt-shaper | `gemini-3-flash-preview` (thinking-medium) |
+| OE PDF extraction (`pdf_extractor.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`) |
+| MCQ PDF extraction (`mcq_extractor.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`) |
+| Validation (OE + MCQ — shared via `pipeline.VALIDATION_MODEL`) | `gemini-3.5-flash` thinking-minimal (fallback `gemini-3-flash-preview`) |
+| HTML generation | `gemini-3.5-flash` thinking-high (fallback `gemini-3-flash-preview`) |
+| ConceptViz prompt-shaper | `gemini-3.5-flash` (thinking-medium) |
 | Diagram PNG / ConceptViz image | `gemini-3.1-flash-image-preview` (nano-banana-2) |
-| OE-quiz bbox detection (`oe_quiz_generator.py`) | `gemini-3-flash-preview` (vision) |
+| OE-quiz bbox detection (`oe_quiz_generator.py`) | `gemini-3.5-flash` (fallback `gemini-3-flash-preview`, vision) |
 
-**Do NOT use:** gemini-2.0-* (deprecated), gemini-2.5-flash-lite as primary (only as fallback).
+**`gemini-3.5-flash`** = "3.5 Flash" — current primary for all text/vision work; fallback `gemini-3-flash-preview` = "3 Flash". Validation runs it at thinking-minimal, HTML generation at thinking-high, plain Flash work at the model default. **Do NOT use:** gemini-2.x / gemini-3.1-pro-preview (superseded).
 
 ### Delegation bridge — `.agents/gemini_bridge.py`
 

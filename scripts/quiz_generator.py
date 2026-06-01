@@ -50,8 +50,8 @@ VALIDATED_DIR = ROOT / "output" / "validated_mcq"
 VALIDATION_PROMPT_FILE = ROOT / "prompts" / "mcq_validation_prompt.txt"
 BBOX_CACHE_FILE = OUTPUT_DIR / "bbox_cache.json"
 
-VISION_MODEL = "gemini-3-flash-preview"
-VISION_FALLBACK = "gemini-2.5-flash"
+VISION_MODEL = "gemini-3.5-flash"
+VISION_FALLBACK = "gemini-3-flash-preview"
 
 
 # ---------------------------------------------------------------------------

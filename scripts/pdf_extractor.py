@@ -24,10 +24,16 @@ PROCESSED_FILE = ROOT / "processed.json"
 EXTRACTION_PROMPT_FILE = ROOT / "prompts" / "extraction_prompt.txt"
 SYLLABUS_TOPICS_FILE = ROOT / "syllabus_topics.json"
 
-GEMINI_EXTRACTION_MODEL = "gemini-3-flash-preview"
+GEMINI_EXTRACTION_MODEL = "gemini-3.5-flash"
+GEMINI_EXTRACTION_FALLBACK = "gemini-3-flash-preview"
 
 # Set after genai.Client() is created in main()
 client: genai.Client | None = None
+
+
+def _is_503(e: Exception) -> bool:
+    s = str(e)
+    return "503" in s or "UNAVAILABLE" in s
 
 
 # ---------------------------------------------------------------------------
@@ -191,11 +197,30 @@ def extract_questions_from_pdf(pdf_path: Path, school: str, year: int, level: st
     else:
         raise RuntimeError(f"Timed out waiting for Gemini to process {pdf_path.name}")
 
+    def _call(model: str):
+        return client.models.generate_content(model=model, contents=[uploaded, prompt])
+
     print(f"  [{pdf_path.name}] Calling {GEMINI_EXTRACTION_MODEL}…")
-    response = client.models.generate_content(
-        model=GEMINI_EXTRACTION_MODEL,
-        contents=[uploaded, prompt],
-    )
+    response = None
+    fallback_reason = None
+    try:
+        response = _call(GEMINI_EXTRACTION_MODEL)
+        if not (response.text and response.text.strip()):
+            fallback_reason = "empty response"
+    except Exception as e:
+        if _is_503(e):
+            fallback_reason = "503 unavailable"
+        else:
+            try:
+                client.files.delete(name=uploaded.name)
+            except Exception:
+                pass
+            raise
+
+    if fallback_reason is not None:
+        print(f"  [{pdf_path.name}] {GEMINI_EXTRACTION_MODEL} {fallback_reason}; "
+              f"falling back to {GEMINI_EXTRACTION_FALLBACK}…")
+        response = _call(GEMINI_EXTRACTION_FALLBACK)
 
     try:
         client.files.delete(name=uploaded.name)

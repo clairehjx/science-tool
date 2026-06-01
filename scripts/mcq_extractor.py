@@ -34,8 +34,8 @@ OUTPUT_JSON_DIR = ROOT / "output" / "json"
 PROCESSED_FILE = ROOT / "processed_mcq.json"
 EXTRACTION_PROMPT_FILE = ROOT / "prompts" / "mcq_extraction_prompt.txt"
 
-GEMINI_EXTRACTION_MODEL = "gemini-3-flash-preview"
-GEMINI_EXTRACTION_FALLBACK = "gemini-2.5-flash"
+GEMINI_EXTRACTION_MODEL = "gemini-3.5-flash"
+GEMINI_EXTRACTION_FALLBACK = "gemini-3-flash-preview"
 
 client: genai.Client | None = None
 

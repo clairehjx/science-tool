@@ -45,8 +45,8 @@ HTML_DIR = ROOT / "output" / "html"
 OUTPUT_DIR = ROOT / "output" / "quizzes"
 BBOX_CACHE_FILE = OUTPUT_DIR / "oe_bbox_cache.json"
 
-VISION_MODEL = "gemini-3-flash-preview"
-VISION_FALLBACK = "gemini-2.5-flash"
+VISION_MODEL = "gemini-3.5-flash"
+VISION_FALLBACK = "gemini-3-flash-preview"
 
 
 def _is_503(e: Exception) -> bool:

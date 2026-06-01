@@ -18,10 +18,12 @@ from google.genai import types
 # Tunable constants
 # ---------------------------------------------------------------------------
 BROAD_THRESHOLD = 0.25             # wide-net semantic threshold; lower to 0.20 if <5 matches
-VALIDATION_MODEL = "gemini-3.1-flash-lite-preview"
-VALIDATION_FALLBACK = "gemini-2.5-flash-lite"   # used when VALIDATION_MODEL returns 503
-HTML_MODEL = "gemini-3.1-pro-preview"           # primary model for tab-content JSON generation
-HTML_FALLBACK = "gemini-2.5-pro"                # used when HTML_MODEL returns 503
+VALIDATION_MODEL = "gemini-3.5-flash"        # "3.5 Flash"; run at thinking=minimal (cheap validation)
+VALIDATION_FALLBACK = "gemini-3-flash-preview"  # used when VALIDATION_MODEL returns 503
+VALIDATION_THINKING = "minimal"
+HTML_MODEL = "gemini-3.5-flash"              # "3.5 Flash"; run at thinking=high (tab-content JSON generation)
+HTML_FALLBACK = "gemini-3-flash-preview"        # used when HTML_MODEL returns 503
+HTML_THINKING = "high"
 
 # Tabs whose content the LLM produces. The shell renders the static Progress
 # tab itself. The Top Questions tab ("questions") is filled in afterwards by
@@ -29,6 +31,13 @@ HTML_FALLBACK = "gemini-2.5-pro"                # used when HTML_MODEL returns 5
 # in this list. build_html_shell still writes an empty placeholder there.
 DYNAMIC_TABS = ["overview", "mistakes", "distinctions",
                 "keywords", "traps", "formula", "summary"]
+
+
+def _thinking_config(name: str | None):
+    """Build a ThinkingConfig from a raw thinking-level string
+    ('minimal' | 'low' | 'medium' | 'high'). google-genai accepts the level as
+    a plain string, so no enum lookup is needed."""
+    return types.ThinkingConfig(thinking_level=name) if name else None
 
 # ---------------------------------------------------------------------------
 # Tier-2 helper-doc selective injection (see optimized-jumping-glacier plan)
@@ -578,12 +587,13 @@ def validate_questions(
         .replace("{QUESTIONS_JSON}", json.dumps(compact, ensure_ascii=False, indent=2))
     )
 
-    print(f"  Calling {model} for validation…")
+    print(f"  Calling {model} for validation (thinking={VALIDATION_THINKING})…")
     response = client.models.generate_content(
         model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
+            thinking_config=_thinking_config(VALIDATION_THINKING),
         ),
     )
 
@@ -717,12 +727,12 @@ def generate_html(
     summary: dict,
     client: genai.Client,
     model: str = HTML_MODEL,
-    thinking_level: "types.ThinkingLevel | None" = None,
+    thinking_level: "str | None" = None,
 ) -> str:
     """Call the LLM for per-tab HTML content, then assemble final HTML via the shell.
 
-    thinking_level: optional types.ThinkingLevel (e.g. types.ThinkingLevel.HIGH) — passed
-    via ThinkingConfig for models that support deliberate reasoning (e.g. gemini-3-flash-preview).
+    thinking_level: optional raw thinking-level string (e.g. "high") — passed
+    via ThinkingConfig for models that support deliberate reasoning (gemini-3.5-flash).
     """
     available_classes = (
         AVAILABLE_CLASSES_FILE.read_text() if AVAILABLE_CLASSES_FILE.exists() else ""
@@ -754,7 +764,7 @@ def generate_html(
     if thinking_level is not None:
         config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level=thinking_level)
 
-    label = f"{model}" + (f" (thinking={thinking_level.value})" if thinking_level else "")
+    label = f"{model}" + (f" (thinking={thinking_level})" if thinking_level else "")
     print(f"  Calling {label} for tab-content JSON…")
     response = client.models.generate_content(
         model=model,
@@ -899,12 +909,14 @@ def run_pipeline(
     # but the prompt instructs it to render only the top 10 hardest in the Top Questions tab.
     # HTML generation with fallback on 503.
     try:
-        html = generate_html(topic, level, validated_questions, summary, client)
+        html = generate_html(topic, level, validated_questions, summary, client,
+                             thinking_level=HTML_THINKING)
     except Exception as e:
         if _is_503(e):
             print(f"  {HTML_MODEL} unavailable (503), trying {HTML_FALLBACK}…")
             html = generate_html(topic, level, validated_questions, summary, client,
-                                 model=HTML_FALLBACK)
+                                 model=HTML_FALLBACK,
+                                 thinking_level=HTML_THINKING)
         else:
             raise
 

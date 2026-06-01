@@ -38,11 +38,11 @@ CONCEPTVIZ_IMAGE_STYLE_FILE = ROOT / "templates" / "conceptviz_image_style.txt"
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
-SVG_MODEL_SIMPLE   = "gemini-3-flash-preview"
-SVG_MODEL_FALLBACK = "gemini-2.5-flash"
+SVG_MODEL_SIMPLE   = "gemini-3.5-flash"
+SVG_MODEL_FALLBACK = "gemini-3-flash-preview"
 
 # Prompt-shaper: takes structured content + style template → final image prompts.
-PROMPT_SHAPER_MODEL = "gemini-3-flash-preview"
+PROMPT_SHAPER_MODEL = "gemini-3.5-flash"
 
 # "nano banana 2" — Gemini image generation model for complex PNG diagrams.
 PNG_MODEL = "gemini-3.1-flash-image-preview"

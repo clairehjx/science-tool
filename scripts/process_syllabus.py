@@ -18,7 +18,8 @@ from google.genai import types
 ROOT = Path(__file__).resolve().parent.parent
 SYLLABUS_PDF = ROOT / "syllabus.pdf"
 OUTPUT_FILE = ROOT / "syllabus_topics.json"
-MODEL = "gemini-3-flash-preview"
+MODEL = "gemini-3.5-flash"
+MODEL_FALLBACK = "gemini-3-flash-preview"
 
 PROMPT = """
 You are extracting the complete topic taxonomy from a Singapore Primary School Science syllabus.
@@ -91,10 +92,20 @@ def main() -> None:
         sys.exit(1)
 
     print(f"Extracting topics with {MODEL}…")
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=[uploaded, PROMPT],
-    )
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=[uploaded, PROMPT],
+        )
+    except Exception as e:
+        if "503" in str(e) or "UNAVAILABLE" in str(e):
+            print(f"  {MODEL} unavailable; falling back to {MODEL_FALLBACK}…")
+            response = client.models.generate_content(
+                model=MODEL_FALLBACK,
+                contents=[uploaded, PROMPT],
+            )
+        else:
+            raise
 
     try:
         client.files.delete(name=uploaded.name)
